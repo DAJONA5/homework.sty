@@ -8,15 +8,25 @@
 \RequirePackage{iftex}
 \RequireLuaTeX%
 
-\let\@homework@minimal\BooleanFalse%
-\let\@homework@titling\BooleanTrue%
-\let\@homework@qthreer\BooleanFalse%
-\let\@homework@lowerhom\BooleanFalse%
-\let\@homework@upperker\BooleanFalse%
-\let\@homework@preservetikz\BooleanFalse%
+\newif\if@homework@minimal
+\@homework@minimalfalse
+\newif\if@homework@explicit@titling
+\@homework@explicit@titlingfalse
+\newif\if@homework@explicit@notitling
+\@homework@explicit@notitlingfalse
+\newif\if@homework@qthreer
+\@homework@qthreerfalse
+\newif\if@homework@lowerhom
+\@homework@lowerhomfalse
+\newif\if@homework@upperker
+\@homework@upperkerfalse
+\newif\if@homework@preservetikz
+\@homework@preservetikzfalse
+\newif\if@homework@inlinerestr
+\@homework@inlinerestrfalse
+\newif\if@homework@usehalmos
+\@homework@usehalmosfalse
 \let\@homework@italicdiff\BooleanTrue%
-\let\@homework@whalmos\BooleanFalse%
-\let\@homework@bhalmos\BooleanFalse%
 \newcommand\@homework@compsingle[1]{{#1}^\complement}
 \newcommand\@homework@graphc[1]{\overline{#1}}
 \newcommand\@homework@restrict[2]{\ensuremath{{#1}\vert_{#2}}}
@@ -43,70 +53,177 @@
 \newcommand\@homework@int{\@homework@intop}
 \newcommand\@homework@cl{\@homework@clop}
 \newcommand\@homework@bd{\@homework@bdop}
+\newcommand\@homework@qedsymbol{\@homework@oldqed}
 
-\DeclareOption{minimal}{%
-  \let\@homework@minimal\BooleanTrue%
-  \let\@homework@titling\BooleanFalse%
+\DeclareKeys{
+  minimal .if = @homework@minimal,
+  titling .if = @homework@explicit@titling,
+  notitling .if = @homework@explicit@notitling,
+  %
+  q3r .if = @homework@qthreer,
+  lowerhom .if = @homework@lowerhom,
+  upperker .if = @homework@upperker,
+  preservetikz .if = @homework@preservetikz,
+  %
+  diff .choice:,
+  diff / upright .code = \let\@homework@italicdiff\BooleanFalse,
+  diff / italic .code = \let\@homework@italicdiff\BooleanTrue,
+  %
+  comp .choice:,
+  comp .default:n = super,
+  comp / line .code = \renewcommand\@homework@compsingle{\overline},
+  comp / tilde .code = \renewcommand\@homework@compsingle{\widetilde},
+  comp / super .code = \renewcommand\@homework@compsingle[1]{{##1}^\complement},
+  %
+  inlinerestr .if = @homework@inlinerestr,
+  %
+  tup .choice:,
+  tup .default:n = paren,
+  tup / angle .code = {
+    \renewcommand\@homework@ltup{\langle}
+    \renewcommand\@homework@rtup{\rangle}
+  },
+  tup / paren .code = {
+    \renewcommand\@homework@ltup{(}
+    \renewcommand\@homework@rtup{)}
+  },
+  %
+  ginv .choice:,
+  ginv .default:n = inverse,
+  ginv / prime .code = \renewcommand\@homework@ginv[1]{{##1}'},
+  ginv / inverse .code = \renewcommand\@homework@ginv[1]{{##1}^{-1}},
+  %
+  vec .choice:,
+  vec .default:n = arrow,
+  vec / bold .code = \renewcommand\@homework@vec{\symbf},
+  vec / underline .code = \renewcommand\@homework@vec{\underline},
+  vec / overline .code = \renewcommand\@homework@vec{\overline},
+  vec / arrow .code = \renewcommand\@homework@vec{\@homework@oldvec},
+  %
+  trans .choice:,
+  trans .default:n = intercal,
+  trans / lowercase .code = \renewcommand\@homework@trans[1]{{##1}^{\mathrm{t}}},
+  trans / intercal .code = \renewcommand\@homework@trans[1]{{##1}^{\intercal}},
+  %
+  limb .choice:,
+  limb .default:n = default,
+  limb / var .code = {
+    \renewcommand\@homework@limsup{\@homework@oldvarlimsup\limits}
+    \renewcommand\@homework@varlimsup{\@homework@oldlimsup\limits}
+    \renewcommand\@homework@liminf{\@homework@oldvarliminf\limits}
+    \renewcommand\@homework@varliminf{\@homework@oldliminf\limits}
+  },
+  limb / default .code = {
+    \renewcommand\@homework@limsup{\@homework@oldlimsup\limits}
+    \renewcommand\@homework@varlimsup{\@homework@oldvarlimsup\limits}
+    \renewcommand\@homework@liminf{\@homework@oldliminf\limits}
+    \renewcommand\@homework@varliminf{\@homework@oldvarliminf\limits}
+  },
+  %
+  lim .choice:,
+  lim .default:n = function,
+  lim / relation .code = {
+    \renewcommand\@homework@lim{\clim}
+    \renewcommand\@homework@nlim{\nclim}
+  },
+  lim / function .code = {
+    \RenewDocumentCommand\@homework@lim{e{^_} m m}{\lim\limits^{\IfValueT{##1}{##1}}_{\IfValueT{##2}{##2}} ##3 = ##4}
+    \RenewDocumentCommand\@homework@nlim{e{^_} m m}{\lim\limits^{\IfValueT{##1}{##1}}_{\IfValueT{##2}{##2}} ##3 {\neq} ##4}
+  },
+  %
+  magn .choice:,
+  magn .default:n = abs,
+  magn / norm .code = \renewcommand\@homework@magn{\norm},
+  magn / abs .code = \newcommand\@homework@magn{\abs},
+  %
+  det .choice:,
+  det / bar .code = {
+    \renewcommand\@homework@deter{\abs}
+    \RenewDocumentEnvironment{@homework@dmatrix}{O{c}}{\begin{vmatrix*}[##1]}{\end{vmatrix*}}
+  },
+  det / function .code = {
+    \renewcommand\@homework@deter{\@homework@pdeter}
+    \RenewDocumentEnvironment{@homework@dmatrix}{O{c}}{\@homework@olddet\begin{pmatrix*}[##1]}{\end{pmatrix*}}
+  },
+  %
+  usehalmos .if = @homework@usehalmos,
+  %
+  halmos .choice:,
+  halmos .default:n = default,
+  halmos / white .code = \renewcommand\@homework@qedsymbol{\square},
+  halmos / black .code = \renewcommand\@homework@qedsymbol{\blacksquare},
+  halmos / default .code = \renewcommand\@homework@qedsymbol{\@homework@oldqed},
+  %
+  int .choice:,
+  int .default:n = op,
+  int / sym .code = \renewcommand\@homework@int{\@homework@symint},
+  int / op .code = \renewcommand\@homework@int{\@homework@intop},
+  %
+  cl .choice:,
+  cl .default:n = op,
+  cl / sym .code = \renewcommand\@homework@cl{\@homework@symcl},
+  cl / op .code = \renewcommand\@homework@cl{\@homework@clop},
+  %
+  bd .choice:,
+  bd .default:n = op,
+  bd / sym .code = \renewcommand\@homework@bd{\@homework@symbd},
+  bd / op .code = \renewcommand\@homework@bd{\@homework@bdop},
+  bd / fr .code = \renewcommand\@homework@bd{\@homework@frbd},
+  %
+  id .choice:,
+  id .default:n = numeric,
+  id / numeric .code = {
+    \renewcommand\@homework@idm[1]{1_{##1}}
+    \renewcommand\@homework@idfr[1]{1_{##1}}
+    \renewcommand\@homework@idnat[1]{1_{##1}}
+  },
+  id / explicit .code = {
+    \renewcommand\@homework@idm[1]{\symnormal{id}_{##1}}
+    \renewcommand\@homework@idfr[1]{\symnormal{id}_{##1}}
+    \renewcommand\@homework@idnat[1]{\symnormal{id}_{##1}}
+  }
 }
-\DeclareOption{notitling}{\let\@homework@titling\BooleanFalse}
-\DeclareOption{titling}{\let\@homework@titling\BooleanTrue}
-\DeclareOption{q3r}{\let\@homework@qthreer\BooleanTrue}
-\DeclareOption{lowerhom}{\let\@homework@lowerhom\BooleanTrue}
-\DeclareOption{upperker}{\let\@homework@upperker\BooleanTrue}
-\DeclareOption{preservetikz}{\let\@homework@preservetikz\BooleanTrue}
-\DeclareOption{uprightdiff}{\let\@homework@italicdiff\BooleanFalse}
-\DeclareOption{linecomp}{\renewcommand\@homework@compsingle{\overline}}
-\DeclareOption{inlinerestr}{\renewcommand\@homework@restrict[2]{\ensuremath{{#1}\vert{#2}}}}
-\DeclareOption{angletup}{%
-  \renewcommand\@homework@ltup{\langle}%
-  \renewcommand\@homework@rtup{\rangle}%
-}
-\DeclareOption{tildecomp}{\renewcommand\@homework@compsingle{\widetilde}}
-\DeclareOption{primeginv}{\renewcommand\@homework@ginv[1]{{#1}'}}
-\DeclareOption{boldvec}{\renewcommand\@homework@vec{\symbf}}
-\DeclareOption{undervec}{\renewcommand\@homework@vec{\underline}}
-\DeclareOption{overvec}{\renewcommand\@homework@vec{\overline}}
-\DeclareOption{lowtrans}{\renewcommand\@homework@trans[1]{{#1}^{\mathrm{t}}}}
-\DeclareOption{varlim}{%
-  \renewcommand\@homework@limsup{\@homework@oldvarlimsup\limits}%
-  \renewcommand\@homework@varlimsup{\@homework@oldlimsup\limits}%
-  \renewcommand\@homework@liminf{\@homework@oldvarliminf\limits}%
-  \renewcommand\@homework@varliminf{\@homework@oldliminf\limits}%
-}
-\DeclareOption{clim}{%
-  \renewcommand\@homework@lim{\clim}%
-  \renewcommand\@homework@nlim{\nclim}%
-}
-\DeclareOption{norm}{\renewcommand\@homework@magn{\norm}}
-\DeclareOption{bardet}{%
-  \renewcommand\@homework@deter{\abs}%
-  \RenewDocumentEnvironment{@homework@dmatrix}{O{c}}{\begin{vmatrix*}[#1]}{\end{vmatrix*}}%
-}
-\DeclareOption{halmos}{%
-  \renewcommand\@homework@hqed{\@homework@qedsymbol}%
-  \renewcommand\@homework@hqef{\@homework@qedsymbol}%
-}
-\DeclareOption{whalmos}{\let\@homework@whalmos\BooleanTrue}
-\DeclareOption{bhalmos}{\let\@homework@bhalmos\BooleanTrue}
-\DeclareOption{symint}{\renewcommand\@homework@int{\@homework@symint}}
-\DeclareOption{symcl}{\renewcommand\@homework@cl{\@homework@symcl}}
-\DeclareOption{symbd}{\renewcommand\@homework@bd{\@homework@symbd}}
-\DeclareOption{frbd}{\renewcommand\@homework@bd{\@homework@frbd}}
-\DeclareOption{explicitid}{%
-\renewcommand\@homework@idm[1]{\symnormal{id}_{#1}}%
-\renewcommand\@homework@idfr[1]{\symnormal{id}_{#1}}%
-\renewcommand\@homework@idnat[1]{\symnormal{id}_{#1}}%
-}
-\DeclareOption*{\PackageWarning{homework}{Unknown option `\CurrentOption'}}
-\ProcessOptions\relax
+\DeclareUnknownKeyHandler{\PackageError{\@currname}{Unknown option `#1=#2`}}
+\ProcessKeyOptions%
 
-\IfBooleanF{\@homework@minimal}{
+\newif\if@homework@titling
+
+\if@homework@minimal
+  \@homework@titlingfalse
+\else
+  \@homework@titlingtrue
+\fi
+
+\if@homework@explicit@titling
+  \@homework@titlingtrue
+  \if@homework@explicit@notitling
+    \PackageError{\@currname}{`titling` and `notitling` are mutually exclusive!}
+  \fi
+\fi
+
+\if@homework@explicit@notitling
+  \@homework@titlingfalse
+\fi
+
+%%%%%%
+
+\if@homework@inlinerestr
+  \renewcommand\@homework@restrict[2]{\ensuremath{{#1}\vert{#2}}}
+\fi
+\if@homework@usehalmos
+  \renewcommand\@homework@hqed{\@homework@qedsymbol}
+  \renewcommand\@homework@hqef{\@homework@qedsymbol}
+\fi
+
+\if@homework@minimal
+\else
   \RequirePackage[hebrew, bidi=basic, layout=counters lists
   footnotes captions extras sectioning.tabular,
   provide={onchar=ids fonts, alph=letters.plain, Alph=letters}]{babel}
   \babelprovide[onchar=fonts letters]{english}
   \RequirePackage[indent]{parskip}
-}
+\fi
+
 \RequirePackage{array}
 \RequirePackage[namelimits]{amsmath}
 \RequirePackage{amsthm, amssymb, amsfonts}
@@ -127,9 +244,9 @@
 \RequirePackage{tikz, pgfplots}
 \RequirePackage{graphicx}
 \RequirePackage{caption}
-\IfBooleanTF{\@homework@minimal}{
+\if@homework@minimal
   \RequirePackage{hyperref}
-}{
+\else
   \RequirePackage[colorlinks]{hyperref}
 
   \babelfont{rm}{TeX Gyre Pagella}
@@ -143,26 +260,31 @@
   \setmathfontface\mathrm{Latin Modern Math}
   \setmathfont[range={bb}]{TeX Gyre Pagella Math}
   \setmathfont[range={\varnothing}]{STIX Two Math}
-}
+\fi
 
 \usetikzlibrary{calc, intersections, cd}
 \pgfplotsset{compat=1.18}
 
-\IfBooleanF{\@homework@minimal}{\IfBooleanF{\@homework@preservetikz}{
-  \NewEnvironmentCopy{@homework@oldtikzpicture}{tikzpicture}
+\if@homework@minimal
+\else
+  \if@homework@preservetikz
+  \else
+    \NewEnvironmentCopy{@homework@oldtikzpicture}{tikzpicture}
 
-  %% Right-to-left text messes up node coordinates. Undoubtedly, this is
-  %% one of the weirdest issues I've encountered.
-  %% I can't use environment/tikzpicture/begin here because I want the
-  %% language change *after* the \tikzpicture call.
-  \AddToHook{cmd/tikzpicture/after}{\selectlanguage{english}}
-  %% This breaks witharrows
-}}
+    %% Right-to-left text messes up node coordinates. Undoubtedly, this is
+    %% one of the weirdest issues I've encountered.
+    %% I can't use environment/tikzpicture/begin here because I want the
+    %% language change *after* the \tikzpicture call.
+    \AddToHook{cmd/tikzpicture/after}{\selectlanguage{english}}
+    %% This breaks witharrows
+  \fi
+\fi
 
-\IfBooleanF{\@homework@minimal}{
+\if@homework@minimal
+\else
   \NewEnvironmentCopy{@homework@oldcodebox}{codebox}
   \RenewDocumentEnvironment{codebox}{}{\begin{otherlanguage}{english}\begin{@homework@oldcodebox}}{\end{@homework@oldcodebox}\end{otherlanguage}}
-}
+\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%%% Configuration %%%%
@@ -194,16 +316,11 @@
 
 \renewcommand\ALG@name{\algorithmname}
 
-\NewCommandCopy\@homework@qedsymbol{\qedsymbol}
-\IfBooleanT{\@homework@bhalmos}{
-  \RenewCommandCopy\@homework@qedsymbol{\blacksquare}
-}
-\IfBooleanT{\@homework@whalmos}{
-  \RenewCommandCopy\@homework@qedsymbol{\square}
-}
+\NewCommandCopy\@homework@oldqed{\qedsymbol}
 \renewcommand\qedsymbol{\qedname}
 
-\IfBooleanF{\@homework@minimal}{
+\if@homework@minimal
+\else
   \newcommand\@localecaption[3]{%
     \setlocalecaption{#1}{#2}{#3}%
     \setlocalecaption{#1}{#2autoref}{#3}%
@@ -246,9 +363,9 @@
   \@localecaption{english}{ih}{the induction hypothesis}
   \@localecaption{english}{solution}{Solution}
   \@localecaption{english}{algorithm}{Algorithm}
-}
+\fi
 
-\IfBooleanT{\@homework@titling}{
+\if@homework@titling
   %% Imitating the way LaTeX defines \title, \author, etc.
   \def\@homework@mmnnum{11}
   \def\@homework@course{שם הקורס}
@@ -268,13 +385,13 @@
     \global\let\@homework@semester\relax
     \global\let\@homework@duedate\relax
   }
-}
+\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% User-Facing Section %%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\IfBooleanT{\@homework@titling}{
+\if@homework@titling
   %% Set the number, course, due date, etc.
   %% Using \NewDocumentCommand to get optimized robust commands
   \NewDocumentCommand\mmnnum{m}{\gdef\@homework@mmnnum{#1}}
@@ -290,12 +407,13 @@
     \sffamily%
   }{}
   \newcommand\mainsection{\section*{\protect\qsectionname}}
-}
+\fi
 
-\IfBooleanF{\@homework@minimal}{
+\if@homework@minimal
+\else
   \NewDocumentCommand\emdash{}{\rule[0.5ex]{1em}{0.15ex}}
   \NewDocumentCommand\endash{}{\rule[0.5ex]{0.5em}{0.15ex}}
-}
+\fi
 
 %% Equation hyperreferences
 \newcommand\eqhref[1]{\hyperref[#1]{\eqref{#1}}}
@@ -321,11 +439,11 @@
 
 \setlist[questions,questions*,1]{start=1,label={\bfseries \questionname\ \arabic*}:,ref=\arabic*}
 \setlist[questions,questions*,2]{start=1,label={\alph*}.,ref=\arabic{questionsi}.\alph*}
-\IfBooleanTF{\@homework@qthreer}{%
-  \setlist[questions,questions*,3]{start=1,label=({\roman*}),ref=\arabic{questionsi}.\alph{questionsii}.\roman*}%
-}{%
-  \setlist[questions,questions*,3]{start=1,label={\arabic*}.,ref=\arabic{questionsi}.\alph{questionsii}.\arabic*}%
-}
+\if@homework@qthreer
+  \setlist[questions,questions*,3]{start=1,label=({\roman*}),ref=\arabic{questionsi}.\alph{questionsii}.\roman*}
+\else
+  \setlist[questions,questions*,3]{start=1,label={\arabic*}.,ref=\arabic{questionsi}.\alph{questionsii}.\arabic*}
+\fi
 
 %%% Utility Document Commands %%%
 
@@ -490,10 +608,10 @@
 
 %% Image and Kernel
 \DeclareMathOperator{\img}{Im}
-\IfBooleanT{\@homework@upperker}{
+\if@homework@upperker
   \DeclareMathOperator{\@homework@ker}{Ker}
   \RenewCommandCopy\ker{\@homework@ker}
-}
+\fi
 
 %% Transpose
 \NewCommandCopy\trans{\@homework@trans}
@@ -550,7 +668,11 @@
 
 \NewCommandCopy\@homework@oldhom{\hom}
 \let\hom\relax%
-\IfBooleanTF\@homework@lowerhom{\NewCommandCopy\hom{\@homework@oldhom}}{\DeclareMathOperator\hom{Hom}}
+\if@homework@lowerhom
+  \NewCommandCopy\hom{\@homework@oldhom}
+\else
+  \DeclareMathOperator\hom{Hom}
+\fi
 
 %% Opposite category
 \NewDocumentCommand\cop{m}{\ensuremath{{#1}^{\mathrm op}}}
@@ -593,20 +715,30 @@
 \DeclareFontFamily{U}{tipa}{}
 \DeclareFontShape{U}{tipa}{m}{n}{<->tipa10}{}
 \newcommand{\arc@char}{{\usefont{U}{tipa}{m}{n}\symbol{62}}}
-\newcommand{\arc@arc}[2]{%
-  \sbox0{$\m@th#1#2$}%
-  \vbox{
-    \hbox{\resizebox{\wd0}{\height}{\IfBooleanTF{\@homework@minimal}{\arc@char}{\foreignlanguage{english}{\arc@char}}}}
-    \nointerlineskip
-    \box0
-  }%
-}
+\if@homework@minimal
+  \newcommand{\arc@arc}[2]{%
+    \sbox0{$\m@th#1#2$}%
+    \vbox{
+      \hbox{\resizebox{\wd0}{\height}{\arc@char}}
+      \nointerlineskip
+      \box0
+    }%
+  }
+\else
+  \newcommand{\arc@arc}[2]{%
+    \sbox0{$\m@th#1#2$}%
+    \vbox{
+      \hbox{\resizebox{\wd0}{\height}{\foreignlanguage{english}{\arc@char}}}
+      \nointerlineskip
+      \box0
+    }%
+  }
+\fi
 
 \NewDocumentCommand\arc{m}{\mathpalette\arc@arc{#1}}
 
 \NewDocumentCommand\tri{m}{\ensuremath{{\triangle {\mathrm {#1}}}}}
 \NewDocumentCommand\quadri{m}{\ensuremath{{\square {\mathrm {#1}}}}}
-
 
 %%% Calculus & Analysis %%%
 \NewDocumentCommand\aprch{e{^_}}{\xrightarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}
