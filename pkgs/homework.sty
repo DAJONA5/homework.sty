@@ -181,7 +181,20 @@
     \renewcommand\@homework@idm[1]{\symnormal{id}_{##1}}
     \renewcommand\@homework@idfr[1]{\symnormal{id}_{##1}}
     \renewcommand\@homework@idnat[1]{\symnormal{id}_{##1}}
-  }
+  },
+  %
+  %% Presets
+  %
+  % Introduction to Mathematics
+  04101 .meta:n = {comp=super,tup=paren,ginv=prime,usehalmos=false},
+  % Discrete Math
+  20476 .meta:n = {comp=super,tup=angle,usehalmos=false,inlinerestr=false},
+  % Calculus I
+  20474 .meta:n = {diff=italic,tup=paren,ginv=inverse,lim=function,usehalmos,halmos=white,q3r},
+  % Algebra I
+  20109 .meta:n = {lowerhom=false,upperker,tup=angle,ginv=inverse,vec=bold,trans=lowercase,magn=norm,det=bar,usehalmos=false},
+  % Data Structures and Introduction to Algorithms
+  20407 .meta:n = {tup=angle,lim=function,usehalmos,halmos=black}
 }
 \DeclareUnknownKeyHandler{\PackageError{\@currname}{Unknown option `#1=#2`}}
 \ProcessKeyOptions%
