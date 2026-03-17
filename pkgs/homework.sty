@@ -280,11 +280,23 @@
   \fi
 \fi
 
+%% Fix codebox to store references to line numbers properly
+\renewcommand{\li}{\global\numberedlinetrue%
+\iffirstcodeline\global\firstcodelinefalse\else\\ \fi
+\refstepcounter{codelinenumber}%
+\liprint}
+
+\renewcommand{\lispace}[1]{\iffirstcodeline\global\firstcodelinefalse\else\\[#1] \fi
+\refstepcounter{codelinenumber}%
+\liprint}
+
 \if@homework@minimal
 \else
   \NewEnvironmentCopy{@homework@oldcodebox}{codebox}
   \RenewDocumentEnvironment{codebox}{}{\begin{otherlanguage}{english}\begin{@homework@oldcodebox}}{\end{@homework@oldcodebox}\end{otherlanguage}}
 \fi
+
+%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%%% Configuration %%%%
@@ -313,6 +325,7 @@
 \@providecaption{ih}{the induction hypothesis}
 \@providecaption{solution}{Solution}
 \@providecaption{algorithm}{Algorithm}
+\@providecaption{codelinenumber}{Line}
 
 \renewcommand\ALG@name{\algorithmname}
 
@@ -344,6 +357,7 @@
   \@localecaption{hebrew}{ih}{הנחת האינדוקציה}
   \@localecaption{hebrew}{solution}{פתרון}
   \@localecaption{hebrew}{algorithm}{אלגוריתם}
+  \@localecaption{hebrew}{codelinenumber}{שורה}
 
   \@localecaption{english}{theorem}{Theorem}
   \@localecaption{english}{corollary}{Corollary}
@@ -363,6 +377,7 @@
   \@localecaption{english}{ih}{the induction hypothesis}
   \@localecaption{english}{solution}{Solution}
   \@localecaption{english}{algorithm}{Algorithm}
+  \@localecaption{english}{codelinenumber}{Line}
 \fi
 
 \if@homework@titling
