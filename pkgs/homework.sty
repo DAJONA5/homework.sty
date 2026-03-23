@@ -262,12 +262,47 @@
 \else
   \RequirePackage[colorlinks]{hyperref}
 
+  \directlua{
+    local function font_found(name)
+      local ok, res = pcall(luaotfload.find, name)
+      return ok and res and true or false
+    end
+
+    local function make_fallback(names)
+      local result = {}
+      for _, name in ipairs(names) do
+        if font_found(name) then
+          table.insert(result, "name:" .. name .. ":mode=harf")
+        end
+      end
+      return result
+    end
+
+    luaotfload.add_fallback("hebrewrm", make_fallback({
+      "David CLM",
+      "Hadasim CLM",
+      "Liberation Serif",
+      "FreeSerif",
+    }))
+
+    luaotfload.add_fallback("hebrewsf", make_fallback({
+      "Nachlieli CLM",
+      "Liberation Sans",
+      "FreeMono",
+    }))
+
+    luaotfload.add_fallback("hebrewtt", make_fallback({
+      "Liberation Mono",
+      "FreeMono",
+    }))
+  }
+
   \babelfont{rm}{TeX Gyre Pagella}
   \babelfont{sf}{TeX Gyre Heros}
   \babelfont{tt}{Noto Sans Mono}
-  \babelfont[hebrew, Ligatures=TeX]{rm}{Hadasim CLM}
-  \babelfont[hebrew, Ligatures=TeX]{sf}{Nachlieli CLM}
-  \babelfont[hebrew]{tt}{Liberation Mono}
+  \babelfont[hebrew, Ligatures=TeX]{rm}[RawFeature={fallback=hebrewrm}]{David CLM}
+  \babelfont[hebrew, Ligatures=TeX]{sf}[RawFeature={fallback=hebrewsf}]{Nachlieli CLM}
+  \babelfont[hebrew]{tt}[RawFeature={fallback=hebrewtt}]{Liberation Mono}
 
   \setmathfont{Latin Modern Math}
   \setmathfontface\mathrm{Latin Modern Math}
@@ -403,7 +438,7 @@
   \AtBeginDocument{%
     \title{מטלת מנחה (ממ״ן) {\@homework@mmnnum}\\%% Space before %
       \Large {\@homework@course} ({\@homework@coursen}) %
-      {\emdash} {\@homework@semester}}%
+      --- {\@homework@semester}}%
     \date{להגשה עד {\@homework@duedate}}%
   }
   \AddToHook{cmd/maketitle/after}{%
