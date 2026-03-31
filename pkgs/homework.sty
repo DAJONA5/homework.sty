@@ -815,15 +815,22 @@
 \NewCommandCopy\nlim{\@homework@nlim}
 \newcommand\at{\eval}
 
-\newcommand\bigo{\order}
-\newcommand\orderleq{\bigo}
-\newcommand\orderle{\orderleq}
 
-\DeclarePairedDelimiterXPP\orderl[1]{o}{(}{)}{}{#1}
-\DeclarePairedDelimiterXPP\ordergeq[1]{\Omega}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP\@homework@orderl[3]{\operatorname{\symnormal{o}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP\@homework@ordergeq[3]{\operatorname{\symnormal{\Omega}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP\@homework@orderleq[3]{\operatorname{\symcal{O}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP\@homework@orderg[3]{\operatorname{\symnormal{\omega}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP\@homework@ordereq[3]{\operatorname{\symnormal{\Theta}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+
+\newcommand\@@homework@definealias[2]{\NewDocumentCommand#1{s e{_^} m}{\IfBooleanTF{##1}{#2*}{#2}{##4}{\IfValueT{##2}{##2}}{\IfValueT{##3}{##3}}}}
+\@@homework@definealias\orderl\@homework@orderl
+\@@homework@definealias\ordergeq\@homework@ordergeq
+\@@homework@definealias\orderleq\@homework@orderleq
+\@@homework@definealias\orderg\@homework@orderg
+\@@homework@definealias\ordereq\@homework@ordereq
+
 \newcommand\orderge{\ordergeq}
-\DeclarePairedDelimiterXPP\orderg[1]{\omega}{(}{)}{}{#1}
-\DeclarePairedDelimiterXPP\ordereq[1]{\Theta}{(}{)}{}{#1}
+\newcommand\orderle{\orderleq}
 
 %% Opposite of \to
 \newcommand\from{\leftarrow}
