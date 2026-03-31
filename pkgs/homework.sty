@@ -500,12 +500,12 @@
 \newlist{questions}{enumerate}{3}
 \newlist{questions*}{enumerate*}{3}
 
-\setlist[questions,questions*,1]{start=1,label={\bfseries \questionname\ \arabic*}:,ref=\arabic*}
-\setlist[questions,questions*,2]{start=1,label={\alph*}.,ref=\arabic{questionsi}.\alph*}
+\setlist[questions,questions*,1]{start=1,label={\bfseries \questionname\ \arabic*}:,ref=\arabic*,left=0pt}
+\setlist[questions,questions*,2]{start=1,label={\alph*}.,ref=\arabic{questionsi}.\alph*,left=0pt}
 \if@homework@qthreer
-  \setlist[questions,questions*,3]{start=1,label=({\roman*}),ref=\arabic{questionsi}.\alph{questionsii}.\roman*}
+  \setlist[questions,questions*,3]{start=1,label=({\roman*}),ref=\arabic{questionsi}.\alph{questionsii}.\roman*,left=0pt}
 \else
-  \setlist[questions,questions*,3]{start=1,label={\arabic*}.,ref=\arabic{questionsi}.\alph{questionsii}.\arabic*}
+  \setlist[questions,questions*,3]{start=1,label={\arabic*}.,ref=\arabic{questionsi}.\alph{questionsii}.\arabic*,left=0pt}
 \fi
 
 %%% Utility Document Commands %%%
