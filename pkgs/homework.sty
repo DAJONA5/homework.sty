@@ -892,12 +892,15 @@
   \providecommand\bc{}%
   \providecommand\ind{}%
   \providecommand\ih{}%
+  \providecommand\pih{}%
   \NewCommandCopy\@oldbc{\bc}%
   \NewCommandCopy\@oldind{\ind}%
   \NewCommandCopy\@oldih{\ih}%
+  \NewCommandCopy\@oldpih{\pih}%
   \renewcommand\bc{\emph{\basecasename}.}%
   \renewcommand\ind{\emph{\indcasename}.}%
   \renewcommand\ih{\ihname}%
+  \renewcommand\pih{\emph{\ihname}.}%
   \IfNoValueTF{#1}{\begin{proof}}{\begin{proof}[#1]}%
   \inductname{} {#2}:\par%
 }{%
@@ -905,6 +908,7 @@
   \RenewCommandCopy\bc{\@oldbc}%
   \RenewCommandCopy\ind{\@oldind}%
   \RenewCommandCopy\ih{\@oldih}%
+  \RenewCommandCopy\pih{\@oldpih}%
 }
 
 %% induct* --- like `induct', but doesn't insert \inductname.
