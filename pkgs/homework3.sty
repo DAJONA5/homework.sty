@@ -1,0 +1,2029 @@
+\NeedsTeXFormat{LaTeX2e}[2023-11-01]
+\ProvidesExplPackage{homework}{2024-08-21}{v0.1}{}
+
+% Require LuaTeX
+\RequirePackage{iftex}
+\RequireLuaTeX
+
+%%%%%%%%%% Variables necessary to declare before options
+
+%% Titling
+\int_new:N \g__homework_mmnnum_int
+\tl_new:N \g__homework_course_tl
+\int_new:N \g__homework_course_int
+\tl_new:N \g__homework_semester_tl
+\tl_new:N \g__homework_duedate_tl
+
+\cs_new:Npn \__homework_title: {
+  מטלת~ מנחה~ (ממ״ן) \nobreakspace \int_use:N \g__homework_mmnnum_int\\
+  \Large \g__homework_course_tl~ (\int_use:N \g__homework_course_int)~
+  ---~ \g__homework_semester_tl
+}
+
+\cs_new:Npn \__homework_date: {
+  להגשה~ עד \nobreakspace \g__homework_duedate_tl
+}
+
+\hook_gput_code:nnn {begindocument} {./titling} {
+  \__homework_titling:
+}
+
+%% Identity transformations
+
+\cs_new:Npn \__homework_id_numeric:n #1 {
+  1 \sb {#1}
+}
+
+\cs_new:Npn \__homework_id_explicit:n #1 {
+  \symnormal{id} \sb {#1}
+}
+
+%% Variable Declarations
+
+\tl_new:N \l__homework_qedsymbol_tl
+
+\tl_new:N \l__homework_ltup_tl % Left delim of tuplet
+\tl_new:N \l__homework_rtup_tl % Right delim ^
+
+%%%%%%
+
+%%% Package Options
+\keys_define:nn {homework} {
+  babel .usage:n = load,
+  babel .bool_set:N = \l__homework_babel_bool,
+  babel .initial:n = true,
+
+  babel/hebrewrm .usage:n = load,
+  babel/hebrewrm .clist_set:N = \l__homework_babel_hebrewrm_clist,
+  babel/hebrewrm .value_required:n = true,
+  babel/hebrewrm .initial:n = {
+    David~CLM,
+    Hadasim~CLM,
+    Liberation~Serif,
+    FreeSerif
+  },
+
+  babel/hebrewsf .usage:n = load,
+  babel/hebrewsf .clist_set:N = \l__homework_babel_hebrewsf_clist,
+  babel/hebrewsf .value_required:n = true,
+  babel/hebrewsf .initial:n = {
+    Nachlieli~CLM,
+    Liberation~Sans,
+    FreeMono
+  },
+
+  babel/hebrewtt .usage:n = load,
+  babel/hebrewtt .clist_set:N = \l__homework_babel_hebrewtt_clist,
+  babel/hebrewtt .value_required:n = true,
+  babel/hebrewtt .initial:n = {
+    Liberation~Mono,
+    FreeMono
+  },
+
+  parskip .usage:n = load,
+  parskip .tl_set:N = \l__homework_parskipoptions_tl,
+  parskip .default:n = indent,
+  parskip .initial:n = indent,
+
+  hyperref .usage:n = preamble,
+  hyperref .code:n = \PassOptionsToPackage{#1}{hyperref},
+  hyperref .initial:n = colorlinks,
+
+  minimal .usage:n = load,
+  minimal .meta:n = {
+    babel = false,
+    parskip = false,
+    titling = false,
+    hyperref = ,
+    preserve / tikz = true,
+    preserve / codebox = true
+  },
+
+  titling .usage:n = preamble,
+  titling .choice:,
+  titling / true .code:n = \cs_gset:Nn \__homework_titling: {
+    \exp_args:Ne \title {\__homework_title:}
+    \exp_args:Ne \date {\__homework_date:}
+  },
+  titling / false .code:n = \cs_gset:Nn \__homework_titling: {},
+  titling .default:n = true,
+  titling .initial:n = true,
+
+  italicdiff .usage:n = load,
+  italicdiff .bool_set:N = \l__homework_italicdiff_bool,
+  italicdiff .initial:n = true,
+
+  preserve / tikz .usage:n = general,
+  preserve / tikz .bool_set:N = \l__homework_preserve_tikz_bool,
+  preserve / tikz .initial:n = false,
+
+  preserve / codebox .usage:n = general,
+  preserve / codebox .bool_set:N = \l__homework_preserve_codebox_bool,
+  preserve / codebox .initial:n = false,
+
+  usehalmos .usage:n = general,
+  usehalmos .bool_set:N = \l__homework_usehalmos_bool,
+  usehalmos .initial:n = false,
+
+  halmos .usage:n = general,
+  halmos .choice:,
+  halmos / white .code:n =
+    \tl_set:Nn \l__homework_qedsymbol_tl {\square},
+  halmos / black .code:n =
+    \tl_set:Nn \l__homework_qedsymbol_tl {\blacksquare},
+  halmos / default .code:n =
+    \tl_set:Nn \l__homework_qedsymbol_tl {\__homework_oldqed:},
+  halmos .default:n = default,
+  halmos .initial:n = default,
+
+  q3r .usage:n = general,
+  q3r .bool_set:N = \l__homework_qthreer_bool,
+  q3r .initial:n = false,
+
+  comp .usage:n = general,
+  comp .choice:,
+  comp / line .code:n = \cs_set_eq:NN \__homework_compsingle:n \overline,
+  comp / tilde .code:n = \cs_set_eq:NN \__homework_compsingle:n \widetilde,
+  comp / super .code:n = \cs_set:Npn \__homework_compsingle:n ##1 {
+    {##1} \sp \complement
+  },
+  comp .initial:n = super,
+  comp .default:n = super,
+
+  tup .usage:n = general,
+  tup .choice:,
+  tup / angle .code:n = {
+    \tl_set:Nn \l__homework_ltup_tl { \langle }
+    \tl_set:Nn \l__homework_rtup_tl { \rangle }
+  },
+  tup / paren .code:n = {
+    \tl_set:Nn \l__homework_ltup_tl { ( }
+    \tl_set:Nn \l__homework_rtup_tl { ) }
+  },
+  tup .initial:n = paren,
+  tup .default:n = paren,
+
+  inlinerestr .choice:,
+  inlinerestr / false .code:n = {
+    \DeclareDocumentCommand \restr {m m} {
+      \ensuremath {
+        {##1} \vert \sb {##2}
+      }
+    }
+  },
+  inlinerestr / true .code:n = {
+    \DeclareDocumentCommand \restr {m m} {
+      \ensuremath {
+        {##1} \vert {##2}
+      }
+    }
+  },
+  inlinerestr .initial:n = false,
+  inlinerestr .default:n = true,
+
+  ginv .usage:n = general,
+  ginv .choice:,
+  ginv / prime .code:n = {
+    \DeclareDocumentCommand \ginv {m} {
+      {##1}'
+    }
+  },
+  ginv / inverse .code:n = {
+    \DeclareDocumentCommand \ginv {m} {
+      {##1} \sp {-1}
+    }
+  },
+  ginv .initial:n = inverse,
+  ginv .default:n = inverse,
+
+  vec .usage:n = general,
+  vec .choice:,
+  vec / bold .code:n = \cs_set:Npn \__homework_vec:n { \symbf },
+  vec / underline .code:n = \cs_set:Npn \__homework_vec:n { \underline },
+  vec / overline .code:n = \cs_set:Npn \__homework_vec:n { \overline },
+  vec / arrow .code:n = \cs_set:Npn \__homework_vec:n { \__homework_oldvec:n },
+  vec .initial:n = arrow,
+  vec .default:n = arrow,
+
+  det .usage:n = general,
+  det .choice:,
+  det / bar .code:n = {
+    \DeclareDocumentCommand \det {} {\abs}
+
+    \DeclareDocumentEnvironment{dmatrix}{O{c}}
+    {\begin{vmatrix*}[##1]}{\end{vmatrix*}}
+  },
+  det / function .code:n = {
+    \DeclareDocumentCommand \det {m} {
+      \ensuremath {
+        \__homework_olddet: \left( ##1 \right)
+      }
+    }
+
+    \DeclareDocumentEnvironment{dmatrix}{O{c}}
+    {\__homework_olddet: \begin{pmatrix*}[##1]}{\end{pmatrix*}}
+  },
+  det .initial:n = function,
+  det .default:n = function,
+
+  magn .usage:n = general,
+  magn .choice:,
+  magn / norm .code:n = \DeclareDocumentCommand \magn {} {\norm},
+  magn / abs .code:n = \DeclareDocumentCommand \magn {} {\abs},
+  magn .initial:n = norm,
+  magn .default:n = norm,
+
+  upperker .usage:n = general,
+  upperker .choice:,
+  upperker / false .code:n = {
+    \cs_if_exist:NT \ker { \cs_undefine:N \ker }
+    \DeclareMathOperator\ker{ker}
+  },
+  upperker / true .code:n = {
+    \cs_if_exist:NT \ker { \cs_undefine:N \ker }
+    \DeclareMathOperator\ker{Ker}
+  },
+  upperker .initial:n = false,
+  upperker .default:n = true,
+
+  trans .usage:n = general,
+  trans .choice:,
+  trans / lowercase .code:n = {
+    \DeclareDocumentCommand\trans{m}{
+      {##1} \sp {\mathrm{t}}
+    }
+  },
+  trans / intercal .code:n = {
+    \DeclareDocumentCommand\trans{m}{
+      {##1} \sp {\intercal}
+    }
+  },
+  trans .initial:n = intercal,
+  trans .default:n = intercal,
+
+  lowerhom .usage:n = general,
+  lowerhom .choice:,
+  lowerhom / false .code:n = {
+    \cs_if_exist:NT \hom { \cs_undefine:N \hom }
+    \DeclareMathOperator\hom{Hom}
+  },
+  lowerhom / true .code:n = {
+    \cs_if_exist:NT \hom { \cs_undefine:N \hom }
+    \DeclareMathOperator\hom{hom}
+  },
+  lowerhom .initial:n = false,
+  lowerhom .default:n = true,
+
+  idof / mor .usage:n = general,
+  idof / mor .choices:nn = { numeric, explicit } {
+    \cs_set_eq:Nc \__homework_idm:n {__homework_id_ \l_keys_choice_str :n}
+  },
+
+  idof / func .usage:n = general,
+  idof / func .choices:nn = { numeric, explicit } {
+    \cs_set_eq:Nc \__homework_idfr:n {__homework_id_ \l_keys_choice_str :n}
+  },
+
+  idof / nat .usage:n = general,
+  idof / nat .choices:nn = { numeric, explicit } {
+    \cs_set_eq:Nc \__homework_idnat:n {__homework_id_ \l_keys_choice_str :n}
+  },
+
+  id .usage:n = general,
+  id .meta:n = {
+    idof / mor = #1,
+    idof / func = #1,
+    idof / nat = #1
+  },
+  id .initial:n = numeric,
+  id .default:n = numeric,
+
+  lim .usage:n = general,
+  lim .choice:,
+  lim / relation .code:n = {
+    \cs_set:Npn \__homework_lim:wwnn {\rlim}
+    \cs_set:Npn \__homework_nlim:wwnn {\nrlim}
+  },
+  lim / function .code:n = {
+    \cs_set:Npn \__homework_lim:wwnn {\flim}
+    \cs_set:Npn \__homework_nlim:wwnn {\nflim}
+  },
+  lim .initial:n = function,
+  lim .default:n = function,
+
+  limb .usage:n = general,
+  limb .choice:,
+  limb / var .code:n = {
+    \cs_set:Npn \__homework_limsup: {\__homework_oldvarlimsup:\limits}
+    \cs_set:Npn \__homework_varlimsup: {\__homework_oldlimsup:\limits}
+    \cs_set:Npn \__homework_liminf: {\__homework_oldvarliminf:\limits}
+    \cs_set:Npn \__homework_varliminf: {\__homework_oldliminf:\limits}
+  },
+  limb / default .code:n = {
+    \cs_set:Npn \__homework_limsup: {\__homework_oldlimsup:\limits}
+    \cs_set:Npn \__homework_varlimsup: {\__homework_oldvarlimsup:\limits}
+    \cs_set:Npn \__homework_liminf: {\__homework_oldliminf:\limits}
+    \cs_set:Npn \__homework_varliminf: {\__homework_oldvarliminf:\limits}
+  },
+  limb .initial:n = default,
+  limb .default:n = default
+  
+  % TODO: q3r
+}
+
+\ProcessKeyOptions[homework]
+
+%%% Dependencies
+
+\bool_if:NT \l__homework_babel_bool {
+  \RequirePackage[hebrew, bidi=basic, layout=counters lists
+  footnotes captions extras sectioning.tabular,
+  provide={onchar=ids fonts, alph=letters.plain, Alph=letters}]{babel}
+  \babelprovide[onchar=fonts letters]{english}
+}
+
+\str_if_eq:nnF \l__homework_parskipoptions_tl { false } {
+  \RequirePackage[\l__homework_parskipoptions_tl]{parskip}
+}
+
+\RequirePackage{array}
+\RequirePackage[namelimits]{amsmath}
+\RequirePackage{amsthm, amssymb, amsfonts}
+\RequirePackage{cancel}
+\RequirePackage{witharrows}
+\RequirePackage{centernot}
+\RequirePackage{xfrac} %% TODO: BiDi support
+\RequirePackage[normalem]{ulem}
+\RequirePackage{mathtools}
+\RequirePackage{lualatex-math}
+\RequirePackage[
+  math-style = ISO,
+  bold-style = ISO,
+  partial = \bool_if:NTF \l__homework_italicdiff_bool {italic} {upright}
+]{unicode-math}
+\RequirePackage[
+  \bool_if:NT \l__homework_italicdiff_bool {italicdiff},
+  arrowdel
+]{physics}
+\RequirePackage{systeme}
+\RequirePackage{algorithm, clrscode}
+\RequirePackage[inline]{enumitem}
+\RequirePackage{tikz, pgfplots}
+\RequirePackage{graphicx}
+\RequirePackage{caption}
+
+\RequirePackage{hyperref}
+\keys_define:nn {homework} { hyperref .code:n = \hypersetup{#1} }
+
+%%% Configuration
+
+%% Languages & Fonts
+\bool_if:NT \l__homework_babel_bool {
+  \seq_new:N \l__homework_tmphebrewrm_seq
+  \seq_new:N \l__homework_tmphebrewsf_seq
+  \seq_new:N \l__homework_tmphebrewtt_seq
+
+  \clist_map_inline:Nn \l__homework_babel_hebrewrm_clist {
+    \seq_put_right:Ne \l__homework_tmphebrewrm_seq {
+      " \lua_escape:e {#1} "
+    }
+  }
+
+  \clist_map_inline:Nn \l__homework_babel_hebrewsf_clist {
+    \seq_put_right:Ne \l__homework_tmphebrewsf_seq {
+      " \lua_escape:e {#1} "
+    }
+  }
+
+  \clist_map_inline:Nn \l__homework_babel_hebrewtt_clist {
+    \seq_put_right:Ne \l__homework_tmphebrewtt_seq {
+      " \lua_escape:e {#1} "
+    }
+  }
+
+  \bool_lazy_any:nTF {
+    { \seq_if_empty_p:N \l__homework_tmphebrewrm_seq }
+    { \seq_if_empty_p:N \l__homework_tmphebrewsf_seq }
+    { \seq_if_empty_p:N \l__homework_tmphebrewtt_seq }
+  } {
+    \babelfont[hebrew, Ligatures=TeX]{rm}{David CLM}
+    \babelfont[hebrew, Ligatures=TeX]{sf}{Nachlieli CLM}
+    \babelfont[hebrew]{tt}{Liberation Mono}
+  } {
+    \lua_now:e{
+      local function font_found(name)
+        local ok, res = pcall(luaotfload.find, name)
+        return ok and res and true or false
+      end
+
+      local function make_fallback(names)
+        local result = {}
+        for _, name in ipairs(names) do
+          if font_found(name) then
+            table.insert(result, "name:" .. name .. ":mode=harf")
+          end
+        end
+        return result
+      end
+
+      luaotfload.add_fallback("hebrewrm", make_fallback({
+        \seq_use:Nn \l__homework_tmphebrewrm_seq {,}
+      }))
+      
+      luaotfload.add_fallback("hebrewsf", make_fallback({
+        \seq_use:Nn \l__homework_tmphebrewsf_seq {,}
+      }))
+      
+      luaotfload.add_fallback("hebrewtt", make_fallback({
+        \seq_use:Nn \l__homework_tmphebrewtt_seq {,}
+      }))
+    }
+
+    \babelfont
+      [hebrew, Ligatures=TeX]
+      {rm}
+      [RawFeature={fallback=hebrewrm}]
+      { \clist_item:Nn \l__homework_babel_hebrewrm_clist {1} }
+
+    \babelfont
+      [hebrew, Ligatures=TeX]
+      {rm}
+      [RawFeature={fallback=hebrewsf}]
+      { \clist_item:Nn \l__homework_babel_hebrewsf_clist {1} }
+
+    \babelfont
+      [hebrew]
+      {rm}
+      [RawFeature={fallback=hebrewtt}]
+      { \clist_item:Nn \l__homework_babel_hebrewtt_clist {1} }
+  }
+
+  \babelfont{rm}{TeX Gyre Pagella}
+  \babelfont{sf}{TeX Gyre Heros}
+  \babelfont{tt}{Noto Sans Mono}
+}
+
+\setmathfont{Latin Modern Math}
+\setmathfontface\mathrm{Latin Modern Math}
+\setmathfont[range={bb}]{TeX Gyre Pagella Math}
+\setmathfont[range={\varnothing}]{STIX Two Math}
+
+%% TikZ
+\usetikzlibrary{calc, intersections, cd}
+\pgfplotsset{compat=1.18}
+
+\NewEnvironmentCopy{@homework@oldtikzpicture}{tikzpicture}
+\hook_gput_code:nnn {cmd/tikzpicture/before} {./tikzrtl} {
+  \bool_lazy_and:nnT
+  { \l__homework_babel_bool }
+  { ! \l__homework_preserve_tikz_bool } {
+    \selectlanguage{english}
+  }
+}
+
+%% CLRScode
+\RenewDocumentCommand\li{}{
+  \legacy_if_gset_true:n { numberedline }
+  \legacy_if:nTF { firstcodeline }{
+    \legacy_if_gset_false:n { firstcodeline }
+  }{
+    \\
+  }
+
+  \refstepcounter{codelinenumber}
+  \liprint
+}
+
+\RenewDocumentCommand\lispace{m}{
+  \legacy_if:nTF { firstcodeline } {
+    \legacy_if_gset_false:n { firstcodeline }
+  }{
+    \\[#1]
+  }
+
+  \refstepcounter{codelinenumber}
+  \liprint
+}
+
+\bool_new:N \l__homework_did_babel_bool
+
+\NewEnvironmentCopy{@homework@oldcodebox}{codebox}
+\RenewDocumentEnvironment{codebox}{}{
+  \bool_lazy_and:nnTF
+  { \l__homework_babel_bool }
+  { ! \l__homework_preserve_codebox_bool } {
+    \begin{otherlanguage}{english}
+    \bool_set_true:N \l__homework_did_babel_bool
+  }{ \bool_set_false:N \l__homework_did_babel_bool }
+  \begin{@homework@oldcodebox}
+}{
+  \end{@homework@oldcodebox}
+  \bool_if:NT \l__homework_did_babel_bool {
+    \end{otherlanguage}
+  }
+}
+
+%% Captions
+
+\cs_new:Npn \homework_provide_caption:nn #1 #2 {
+  \cs_if_free:cT {#1 name} {
+    \exp_args:Nc \NewDocumentCommand {#1 name} {} {#2}
+  }
+  \cs_if_free:cT {#1 autorefname} {
+    \exp_args:Ncc \NewCommandCopy {#1 autorefname} {#1 name}
+  }
+}
+
+\homework_provide_caption:nn {theorem} {Theorem}
+\homework_provide_caption:nn {corollary} {Corollary}
+\homework_provide_caption:nn {lemma} {Lemma}
+\homework_provide_caption:nn {definition} {Definition}
+\homework_provide_caption:nn {remark} {Remark}
+\homework_provide_caption:nn {question} {Question}
+\homework_provide_caption:nn {qsection} {Questions}
+\homework_provide_caption:nn {preface} {Preface}
+\homework_provide_caption:nn {qed} {\l__homework_qedsymbol_tl}
+\homework_provide_caption:nn {qef} {\l__homework_qedsymbol_tl} % Q.E.F: Quod erat faciendum
+\homework_provide_caption:nn {counterex} {Counterexample}
+\homework_provide_caption:nn {example} {Example}
+\homework_provide_caption:nn {induct} {By induction on}
+\homework_provide_caption:nn {basecase} {Base case}
+\homework_provide_caption:nn {indcase} {Inductive case}
+\homework_provide_caption:nn {ih} {the induction hypothesis}
+\homework_provide_caption:nn {solution} {Solution}
+\homework_provide_caption:nn {algorithm} {Algorithm}
+\homework_provide_caption:nn {codelinenumber} {Line}
+
+\cs_set_eq:NN \ALG@name \algorithmname
+
+\cs_set_eq:NN \__homework_oldqed: \qedsymbol
+\RenewDocumentCommand \qedsymbol {} {\qedname}
+
+\bool_if:NT \l__homework_babel_bool {
+  \cs_new:Npn \homework_locale_caption:nnn #1 #2 #3 {
+    \setlocalecaption {#1} {#2} {#3}
+    \setlocalecaption {#1} {#2 autoref} {#3}
+  }
+
+  \tl_new:N \l__homework_hqed_tl
+  \tl_new:N \l__homework_hqef_tl
+
+  \tl_set:Nn \l__homework_hqed_tl {
+    \bool_if:NTF \l__homework_usehalmos_bool {
+      \l__homework_qedsymbol_tl
+    } {
+      מ.ש.ל.
+    }
+  }
+  \tl_set_eq:NN \l__homework_hqef_tl \l__homework_hqed_tl
+
+  \homework_locale_caption:nnn{hebrew}{theorem}{משפט}
+  \homework_locale_caption:nnn{hebrew}{corollary}{מסקנה}
+  \homework_locale_caption:nnn{hebrew}{lemma}{טענה}
+  \homework_locale_caption:nnn{hebrew}{definition}{הגדרה}
+  \homework_locale_caption:nnn{hebrew}{remark}{הערה}
+  \homework_locale_caption:nnn{hebrew}{question}{שאלה}
+  \homework_locale_caption:nnn{hebrew}{qsection}{שאלות}
+  \homework_locale_caption:nnn{hebrew}{preface}{הקדמה}
+  \homework_locale_caption:nnn{hebrew}{qed}{\l__homework_hqed_tl}
+  \homework_locale_caption:nnn{hebrew}{qef}{\l__homework_hqef_tl}
+  \homework_locale_caption:nnn{hebrew}{counterex}{דוגמה נגדית}
+  \homework_locale_caption:nnn{hebrew}{example}{דוגמה}
+  \homework_locale_caption:nnn{hebrew}{induct}{באינדוקציה על}
+  \homework_locale_caption:nnn{hebrew}{basecase}{צעד הבסיס}
+  \homework_locale_caption:nnn{hebrew}{indcase}{צעד האינדוקציה}
+  \homework_locale_caption:nnn{hebrew}{ih}{הנחת האינדוקציה}
+  \homework_locale_caption:nnn{hebrew}{solution}{פתרון}
+  \homework_locale_caption:nnn{hebrew}{algorithm}{אלגוריתם}
+  \homework_locale_caption:nnn{hebrew}{codelinenumber}{שורה}
+
+  \homework_locale_caption:nnn{english}{theorem}{Theorem}
+  \homework_locale_caption:nnn{english}{corollary}{Corollary}
+  \homework_locale_caption:nnn{english}{lemma}{Lemma}
+  \homework_locale_caption:nnn{english}{definition}{Definition}
+  \homework_locale_caption:nnn{english}{remark}{Remark}
+  \homework_locale_caption:nnn{english}{question}{Question}
+  \homework_locale_caption:nnn{english}{qsection}{Questions}
+  \homework_locale_caption:nnn{english}{preface}{Preface}
+  \homework_locale_caption:nnn{english}{qed}{\l__homework_qedsymbol_tl}
+  \homework_locale_caption:nnn{english}{qef}{\l__homework_qedsymbol_tl}
+  \homework_locale_caption:nnn{english}{counterex}{Counterexample}
+  \homework_locale_caption:nnn{english}{example}{Example}
+  \homework_locale_caption:nnn{english}{induct}{By induction over}
+  \homework_locale_caption:nnn{english}{basecase}{Base case}
+  \homework_locale_caption:nnn{english}{indcase}{Inductive case}
+  \homework_locale_caption:nnn{english}{ih}{the induction hypothesis}
+  \homework_locale_caption:nnn{english}{solution}{Solution}
+  \homework_locale_caption:nnn{english}{algorithm}{Algorithm}
+  \homework_locale_caption:nnn{english}{codelinenumber}{Line}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Document Commands %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Titling
+
+\NewDocumentCommand\mmnnum{m}{\int_gset:Nn \g__homework_mmnnum_int #1}
+\NewDocumentCommand\coursen{m}{\int_gset:Nn \g__homework_course_int #1}
+\NewDocumentCommand\course{m}{\tl_gset:Nn \g__homework_course_tl #1}
+\NewDocumentCommand\semester{m}{\tl_gset:Nn \g__homework_semester_tl #1}
+\NewDocumentCommand\duedate{m m m}{
+  \tl_gset:Nn \g__homework_duedate_tl {\localedate{#1}{#2}{#3}}
+}
+
+\NewDocumentEnvironment{preface}{o}{
+  \subsection*{{\protect\sffamily\IfNoValueTF{#1}{\prefacename}{#1}}}
+  \sffamily
+}{}
+
+\NewDocumentCommand\mainsection{}{\section*{\protect\qsectionname}}
+
+%%% Equation hyperreferences
+\NewDocumentCommand\eqhref{m}{\hyperref[#1]{\eqref{#1}}}
+
+%%% Theorem-Like Environments
+\cs_new:Npn \__homework_newtheorem:nn #1 #2 {
+  \newtheorem{#1}{#2}
+  \newtheorem*{#1 *}{#2}
+}
+\cs_new:Npn \__homework_newtheorem:nnn #1 #2 #3 {
+  \newtheorem{#1}{#2}[#3]
+  \newtheorem*{#1*}{#2}
+}
+
+\theoremstyle{plain}
+\__homework_newtheorem:nn {theorem} {\theoremname}
+\__homework_newtheorem:nn {lemma} {\lemmaname}
+\__homework_newtheorem:nnn {corollary} {\corollaryname} {theorem}
+
+\theoremstyle{definition}
+\__homework_newtheorem:nn {definition} {\definitionname}
+
+\theoremstyle{remark}
+\__homework_newtheorem:nn {remark} {\remarkname}
+
+%%% List of Questions with sub-items
+\newlist{questions}{enumerate}{3}
+\newlist{questions*}{enumerate*}{3}
+
+\setlist[questions,questions*,1]{start=1,label={\bfseries \questionname\ \arabic*}:,ref=\arabic*,left=0pt}
+\setlist[questions,questions*,2]{start=1,label={\alph*}.,ref=\arabic{questionsi}.\alph*,left=0pt}
+
+\bool_if:NTF \l__homework_qthreer_bool {
+  \setlist[questions,questions*,3]{
+    start = 1,
+    label = ({\roman*}),
+    ref = \arabic{questionsi}.\alph{questionsii}.\roman*,
+    left = 0pt
+  }
+} {
+  \setlist[questions,questions*,3]{
+    start = 1,
+    label = {\arabic*}.,
+    ref = \arabic{questionsi}.\alph{questionsii}.\arabic*,
+    left = 0pt
+  }
+}
+\cs_undefine:N \l__homework_qthreer_bool
+
+\keys_define:nn {homework} {
+  q3r .choice:,
+  q3r / true .code:n = {
+    \setlist[questions,questions*,3]{
+      start = 1,
+      label = ({\roman*}),
+      ref = \arabic{questionsi}.\alph{questionsii}.\roman*,
+      left = 0pt
+    }
+  },
+  q3r / false .code:n = {
+    \setlist[questions,questions*,3]{
+      start = 1,
+      label = {\arabic*}.,
+      ref = \arabic{questionsi}.\alph{questionsii}.\arabic*,
+      left = 0pt
+    }
+  },
+  q3r .default:n = true,
+}
+
+%%% Utilities
+
+\NewDocumentCommand\qstyle{+m}{\textit{#1}}
+
+\NewDocumentCommand\withref{m m}{
+  \hyperref[#1]{
+    \begingroup\def\me{\ref*{#1}}#2\endgroup
+  }
+}
+
+%% Equals sign with question mark. To be used in proofs when proving
+%% equality, to show two expressions becoming the same through
+%% (algebraic) manipulation.
+\NewDocumentCommand\eqq{}{\ensuremath{\mathrel{\overset{?}{=}}}}
+
+%% Centred TikZ graphic
+\NewDocumentEnvironment{tikzcenter}{O{}}
+{\begin{center}\begin{tikzpicture}[#1]}{\end{tikzpicture}\end{center}}
+
+%%% Set Theory %%%
+
+%% Set Complement
+\NewDocumentCommand\setc{o m}{
+  \ensuremath{
+    \IfNoValueTF{#1} {
+      \__homework_compsingle:n{#2}
+    } {
+      {#2}\sp\complement(#1)
+    }
+  }
+}
+
+%% Symmetric difference
+\NewDocumentCommand\symdif{}{\triangle}
+
+%% Cartesian product
+\NewDocumentCommand\cprod{}{\times}
+
+%% Powerset
+\DeclarePairedDelimiterXPP\powerset[1]
+{\operatorname{\symcal{P}}}
+{(} {)} {} {#1}
+
+%% Set-builder notation
+\DeclarePairedDelimiter \set {\{} {\}}
+\DeclarePairedDelimiterX \setb [2] {\{} {\}} {
+  #1 \, \delimsize\vert \, \mathopen{} #2
+}
+
+%% Ordered Tuplets
+\DeclarePairedDelimiter\tuplet
+{\l__homework_ltup_tl}{\l__homework_rtup_tl}
+
+\DeclarePairedDelimiterX\pair[2]
+{\l__homework_ltup_tl}{\l__homework_rtup_tl}
+{#1,#2}
+
+\DeclarePairedDelimiterX\triplet[3]
+{\l__homework_ltup_tl}{\l__homework_rtup_tl}
+{#1,#2,#3}
+
+%% Function Declaration
+\NewDocumentCommand\ftyp{m O{#1}}{\ensuremath{{#1} \rightarrow {#2}}}
+
+%% Function Composition
+\NewDocumentCommand\comp{}{\circ}
+
+%% Inverse Function
+\NewDocumentCommand\finv{m}{\ensuremath{{#1} \sp {-1}}}
+
+%% Cardinality
+\DeclarePairedDelimiter\car{\lvert}{\rvert}
+
+%% Relation font
+\NewDocumentCommand\rel{m}{\mathrel{#1}}
+
+%% Relation inverse
+\NewDocumentCommand\rinv{m}{\ensuremath{{#1} \sp {-1}}}
+
+%% Special sets
+\tl_new:Nn \c__homework_naturals_tl { \symbb{N} }
+\tl_new:Nn \c__homework_integers_tl { \symbb{Z} }
+\tl_new:Nn \c__homework_rationals_tl { \symbb{Q} }
+\tl_new:Nn \c__homework_reals_tl { \symbb{R} }
+\tl_new:Nn \c__homework_imaginaries_tl { \symbb{I} }
+\tl_new:Nn \c__homework_complex_tl { \symbb{C} }
+
+\cs_set_eq:NN \naturals \c__homework_naturals_tl
+\cs_set_eq:NN \integers \c__homework_integers_tl
+\cs_set_eq:NN \zahlen \c__homework_integers_tl
+\cs_set_eq:NN \rationals \c__homework_rationals_tl
+\cs_set_eq:NN \reals \c__homework_reals_tl
+\cs_set_eq:NN \imaginaries \c__homework_imaginaries_tl
+\cs_set_eq:NN \complex \c__homework_complex_tl
+
+%%% Combinatorics %%%
+\DeclarePairedDelimiterXPP{\comb}[2]{\operatorname{C}}{(}{)}{}{{#1},{#2}}
+\DeclarePairedDelimiterXPP{\perms}[2]{\operatorname{P}}{(}{)}{}{{#1},{#2}}
+\DeclarePairedDelimiterXPP{\rcomb}[2]{\operatorname{D}}{(}{)}{}{{#1},{#2}}
+
+%%% Graph Theory %%%
+\DeclareMathOperator{\edges}{E}
+\DeclareMathOperator{\vertices}{V}
+\DeclareMathOperator{\faces}{F}
+\DeclareMathOperator{\gdeg}{deg}
+\DeclareMathOperator{\neighbours}{Γ}
+\DeclareMathOperator{\colouring}{χ}
+\cs_set:Npn \coloring {\colouring}
+\cs_set:Npn \neighbors {\neighbours}
+\NewCommandCopy \graphc {\overline}
+
+%%% Numbers %%%
+%% We like to be semantic
+\newcommand\divs{\mid}
+\newcommand\ndivs{\nmid}
+\NewDocumentCommand\slfrac{m m}{{#1}/{#2}}
+
+%% Complex Conjugate
+\NewDocumentCommand\conj{}{\overline}
+\DeclareMathOperator{\cis}{cis}
+\DeclareMathOperator{\real}{Re}
+\DeclareMathOperator{\imag}{Im}
+
+%%% Algebra %%%
+%% multiplicative inverse
+\NewDocumentCommand\fminv{m}{\ensuremath{{#1} \sp {-1}}}
+%% additive inverse
+\NewDocumentCommand\fainv{m}{\ensuremath{\left(-{#1}\right)}}
+
+%% Polynomials over a field
+\NewDocumentCommand\polys{m O{x}}{\ensuremath{{#1}\left[{#2}\right]}}
+\NewDocumentCommand\polyf{m m O{x}}{
+  \ensuremath{
+    {#1} \sb {#2}
+    \left[{#3}\right]
+  }
+}
+
+%%% Linear Algebra %%%
+\cs_set_eq:NN \__homework_oldvec:n \vec
+\NewCommandCopy \vec \__homework_vec:n
+\NewDocumentCommand \basis {} {\vu*}
+
+\cs_set_eq:NN \__homework_olddet: \det
+
+%% Row operations
+\NewDocumentCommand\swap{}{\leftrightarrow}
+\ExplSyntaxOff
+\NewDocumentCommand\mapsby{e{^_}}{\xrightarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}
+\ExplSyntaxOn
+
+%% Vectors
+\NewEnvironmentCopy{bvector}{bmatrix}
+\NewEnvironmentCopy{pvector}{pmatrix}
+
+%% Coordinate vectors
+\DeclarePairedDelimiterXPP{\coords}[2]{}{[}{]}{\sb {#2}}{#1}
+
+%% Matrix representing a transformation
+\DeclarePairedDelimiterXPP{\tmat}[3]{}{[}{]}{\sp {#2} \sb {#3}}{#1}
+
+%% Span
+\DeclareMathOperator{\lspan}{Sp}
+
+%% Direct sum of vector spaces
+\NewDocumentCommand\dsum{}{\oplus}
+
+%% Inner product & orthogonality
+\NewCommandCopy\scprod{\vdot} % For "scalar product"
+\DeclarePairedDelimiterX\innerp[2]{\langle}{\rangle}{#1,#2}
+% \DeclarePairedDelimiter\bra{\langle}{\rvert}
+% \DeclarePairedDelimiter\ket{\lvert}{\rangle}
+% \DeclarePairedDelimiterX\braket[3]{\langle}{\rangle}{%
+  % #1\,\delimsize\vert\,\mathopen{}#2\,\delimsize\vert\,\mathopen{}#3%
+  % }
+\newcommand\orth{\perp}
+\NewDocumentCommand\oc{m}{{#1} \sp {\perp}}
+
+%% Image and Kernel
+\DeclareMathOperator{\img}{Im}
+
+%% Inverse matrix
+\NewDocumentCommand\matinv{m}{{#1} \sp {-1}}
+
+%% Augmented matrices
+\NewDocumentEnvironment{amatrix}{O{c} m O{1}}{
+   \begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{
+  \end{array}
+}
+
+\NewDocumentEnvironment{pamatrix}{O{c} m O{1}}{
+  \left(\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{
+  \end{array}\right)
+}
+
+\NewDocumentEnvironment{bamatrix}{O{c} m O{1}}{
+  \left[\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{
+  \end{array}\right]
+}
+
+\NewDocumentEnvironment{Bamatrix}{O{c} m O{1}}{
+  \left\{\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{
+  \end{array}\right\}
+}
+
+\NewDocumentEnvironment{vamatrix}{O{c} m O{1}}{
+  \left\lvert\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{
+  \end{array}\right\rvert
+}
+
+\NewDocumentEnvironment{Vamatrix}{O{c} m O{1}}{%
+  \left\lVert\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{%
+  \end{array}\right\rVert
+}
+
+%% Arbitrary field
+\NewDocumentCommand\field{}{\symbb{F}}
+
+%%% Category Theory %%%
+\DeclareMathOperator{\ob}{ob}
+\DeclareMathOperator{\mor}{mor}
+
+%% Category font
+\NewDocumentCommand\cat{}{\symbf}
+
+%% Opposite category
+\NewDocumentCommand\cop{m}{\ensuremath{{#1} \sp {\mathrm op}}}
+
+%% Morphism type
+\NewDocumentCommand\mtyp{}{\ftyp}
+
+%% Identity morphism
+\NewDocumentCommand\idm{m}{\ensuremath{\__homework_idm:n {#1}}}
+
+%% Inverse morphism
+\NewDocumentCommand\minv{m}{\ensuremath{{#1} \sp {-1}}}
+
+%% Isomorphic objects
+\NewDocumentCommand\iso{}{\cong}
+
+%% Functor type
+\NewDocumentCommand\frtyp{}{\mtyp}
+
+%% Identity Functor
+\NewDocumentCommand\idfr{m}{\ensuremath{\__homework_idfr:n {#1}}}
+
+%% Natural transformation type
+\NewDocumentCommand\nattyp{m O{#1}}{\ensuremath{{#1} \Rightarrow {#2}}}
+
+%% Identity natural transformation
+\NewDocumentCommand\idnat{m}{\ensuremath{\__homework_idnat:n {#1}}}
+
+%% Horizontal composition
+\newcommand\hcomp{*}
+
+%% Hom-set / Hom-class
+\NewDocumentCommand\homset{o m m}{\ensuremath{\IfNoValueTF{#1}{\hom}{\hom_{#1}}(#2, #3)}}
+
+%%% Geometry %%%
+%% Line Segment
+\newcommand\seg{\overline}
+
+%% See <https://tex.stackexchange.com/a/284787>
+\DeclareFontFamily{U}{tipa}{}
+\DeclareFontShape{U}{tipa}{m}{n}{<->tipa10}{}
+\cs_new:Npn \__homework_arc_char: {
+  {\usefont{U}{tipa}{m}{n} \symbol{62}}
+}
+
+\bool_if:NTF \l__homework_babel_bool {
+  \cs_new:Npn \__homework_arc:nn #1#2 {
+    \sbox0{$\m@th#1#2$}
+    \vbox{
+      \hbox{\resizebox{\wd0}{\height}{\foreignlanguage{english}{\__homework_arc_char:}}}
+      \nointerlineskip
+      \box0
+    }
+  }
+} {
+  \cs_new:Npn \__homework_arc:nn #1#2 {
+    \sbox0{$\m@th#1#2$}
+    \vbox{
+      \hbox{\resizebox{\wd0}{\height}{\__homework_arc_char:}}
+      \nointerlineskip
+      \box0
+    }
+  }
+}
+
+\NewDocumentCommand\arc{m}{\mathpalette \__homework_arc:nn {#1}}
+
+\NewDocumentCommand\tri{m}{\ensuremath{{\triangle {\mathrm {#1}}}}}
+\NewDocumentCommand\quadri{m}{\ensuremath{{\square {\mathrm {#1}}}}}
+
+%%% Calculus & Analysis %%%
+
+\ExplSyntaxOff
+\NewDocumentCommand\aprch{e{^_}}{\xrightarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}
+%% It's janky
+\NewDocumentCommand\naprch{e{^_}}{\centernot{\xrightarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}}
+\NewDocumentCommand\hcrpa{e{^_}}{\xleftarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}
+\NewDocumentCommand\nhcrpa{e{^_}}{\centernot{\xleftarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}}
+\NewDocumentCommand\rlim{e{^_} m m}{\ensuremath{#3 \aprch^{#1}_{#2} {#4}}}
+\NewDocumentCommand\nrlim{e{^_} m m}{\ensuremath{#3 \naprch^{#1}_{#2} {#4}}}
+\NewDocumentCommand\flim{e{^_} m m}{\lim\limits^{\IfValueT{#1}{#1}}_{\IfValueT{#2}{#2}} #3 = #4}
+\NewDocumentCommand\nflim{e{^_} m m}{\lim\limits^{\IfValueT{#1}{#1}}_{\IfValueT{#2}{#2}} #3 {\neq} #4}
+\ExplSyntaxOn
+
+\NewCommandCopy\limes{\__homework_lim:wwnn}
+\NewCommandCopy\nlim{\__homework_nlim:wwnn}
+\NewDocumentCommand\at{}{\eval}
+
+%% Orders of growth
+
+\DeclareMathOperator* \__homework_orderl: {\symnormal{o}}
+\DeclareMathOperator* \__homework_ordergeq: {\symnormal{\Omega}}
+\DeclareMathOperator* \__homework_orderleq: {\symcal{O}}
+\DeclareMathOperator* \__homework_orderg: {\symnormal{\omega}}
+\DeclareMathOperator* \__homework_ordereq: {\symnormal{\Theta}}
+
+\DeclarePairedDelimiterXPP \__homework_orderl:nnn [3] {
+  \__homework_orderl: \sb {#2} \sp {#3}
+}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP \__homework_ordergeq:nnn [3] {
+  \__homework_ordergeq: \sb {#2} \sp {#3}
+}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP \__homework_orderleq:nnn [3] {
+  \__homework_orderleq: \sb {#2} \sp {#3}
+}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP \__homework_orderg:nnn [3] {
+  \__homework_orderg: \sb {#2} \sp {#3}
+}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP \__homework_ordereq:nnn [3] {
+  \__homework_ordereq: \sb {#2} \sp {#3}
+}{(}{)}{}{#1}
+
+\ExplSyntaxOff% For the superscript/subscript characters
+\newcommand\@@homework@definealias[2]{\NewDocumentCommand#1{s e{_^} m}{%
+    \IfBooleanTF{##1}{#2*}{#2}{##4}%
+    {\IfValueT{##2}{##2}}{\IfValueT{##3}{##3}}%
+  }%
+}
+\ExplSyntaxOn
+
+\cs_set_eq:Nc \__homework_definealias:NN {@@homework@definealias}
+\__homework_definealias:NN \orderl \__homework_orderl:nnn
+\__homework_definealias:NN \ordergeq \__homework_ordergeq:nnn
+\__homework_definealias:NN \orderleq \__homework_orderleq:nnn
+\__homework_definealias:NN \orderg \__homework_orderg:nnn
+\__homework_definealias:NN \ordereq \__homework_ordereq:nnn
+
+\cs_set_eq:NN \orderge \ordergeq
+\cs_set_eq:NN \orderle \orderleq
+
+%% Opposite of \to
+\NewDocumentCommand\from{}{\leftarrow}
+
+\cs_set_eq:NN \__homework_oldlimsup: \limsup
+\cs_set_eq:NN \__homework_oldvarlimsup: \varlimsup
+\cs_set_eq:NN \__homework_oldliminf: \liminf
+\cs_set_eq:NN \__homework_oldvarliminf: \varliminf
+
+\RenewDocumentCommand\limsup{}{\__homework_limsup:}
+\RenewDocumentCommand\varlimsup{}{\__homework_varlimsup:}
+\RenewDocumentCommand\liminf{}{\__homework_liminf:}
+\RenewDocumentCommand\varliminf{}{\__homework_varliminf:}
+
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\fracp{\langle}{\rangle}
+
+\endinput
+
+%%%%%%%%%%%%%%%
+%%%% Setup %%%%
+%%%%%%%%%%%%%%%
+
+\RequirePackage{iftex}
+\RequireLuaTeX%
+
+\newif\if@homework@minimal
+\@homework@minimalfalse
+\newif\if@homework@explicit@titling
+\@homework@explicit@titlingfalse
+\newif\if@homework@explicit@notitling
+\@homework@explicit@notitlingfalse
+\newif\if@homework@qthreer
+\@homework@qthreerfalse
+\newif\if@homework@lowerhom
+\@homework@lowerhomfalse
+\newif\if@homework@upperker
+\@homework@upperkerfalse
+\newif\if@homework@preservetikz
+\@homework@preservetikzfalse
+\newif\if@homework@inlinerestr
+\@homework@inlinerestrfalse
+\newif\if@homework@usehalmos
+\@homework@usehalmosfalse
+\let\@homework@italicdiff\BooleanTrue%
+\newcommand\@homework@compsingle[1]{{#1}^\complement}
+\newcommand\@homework@graphc[1]{\overline{#1}}
+\newcommand\@homework@restrict[2]{\ensuremath{{#1}\vert_{#2}}}
+\newcommand\@homework@ltup{(}
+\newcommand\@homework@rtup{)}
+\newcommand\@homework@ginv[1]{{#1}^{-1}}
+\newcommand\@homework@vec{\@homework@oldvec}
+\newcommand\@homework@trans[1]{{#1}^{\intercal}}
+\NewDocumentCommand\@homework@lim{e{^_} m m}{\lim\limits^{\IfValueT{#1}{#1}}_{\IfValueT{#2}{#2}} #3 = #4}
+\NewDocumentCommand\@homework@nlim{e{^_} m m}{\lim\limits^{\IfValueT{#1}{#1}}_{\IfValueT{#2}{#2}} #3 {\neq} #4}
+% \newcommand\@homework@lim[3]{\lim_{#1} #2 = #3}
+\newcommand\@homework@idm[1]{1_{#1}}
+\newcommand\@homework@idfr[1]{1_{#1}}
+\newcommand\@homework@idnat[1]{1_{#1}}
+\newcommand\@homework@magn{\abs}
+\newcommand\@homework@deter{\@homework@pdeter}
+\NewDocumentEnvironment{@homework@dmatrix}{O{c}}{\@homework@olddet\begin{pmatrix*}[#1]}{\end{pmatrix*}}
+\newcommand\@homework@hqed{מ.ש.ל.}
+\newcommand\@homework@hqef{מ.ש.ל.}
+\newcommand\@homework@limsup{\@homework@oldlimsup\limits}
+\newcommand\@homework@varlimsup{\@homework@oldvarlimsup\limits}
+\newcommand\@homework@liminf{\@homework@oldliminf\limits}
+\newcommand\@homework@varliminf{\@homework@oldvarliminf\limits}
+\newcommand\@homework@int{\@homework@intop}
+\newcommand\@homework@cl{\@homework@clop}
+\newcommand\@homework@bd{\@homework@bdop}
+\newcommand\@homework@qedsymbol{\@homework@oldqed}
+
+\DeclareKeys{
+  minimal .if = @homework@minimal,
+  titling .if = @homework@explicit@titling,
+  notitling .if = @homework@explicit@notitling,
+  %
+  q3r .if = @homework@qthreer,
+  lowerhom .if = @homework@lowerhom,
+  upperker .if = @homework@upperker,
+  preservetikz .if = @homework@preservetikz,
+  %
+  diff .choice:,
+  diff / upright .code = \let\@homework@italicdiff\BooleanFalse,
+  diff / italic .code = \let\@homework@italicdiff\BooleanTrue,
+  %
+  comp .choice:,
+  comp .default:n = super,
+  comp / line .code = \renewcommand\@homework@compsingle{\overline},
+  comp / tilde .code = \renewcommand\@homework@compsingle{\widetilde},
+  comp / super .code = \renewcommand\@homework@compsingle[1]{{##1}^\complement},
+  %
+  inlinerestr .if = @homework@inlinerestr,
+  %
+  tup .choice:,
+  tup .default:n = paren,
+  tup / angle .code = {
+    \renewcommand\@homework@ltup{\langle}
+    \renewcommand\@homework@rtup{\rangle}
+  },
+  tup / paren .code = {
+    \renewcommand\@homework@ltup{(}
+    \renewcommand\@homework@rtup{)}
+  },
+  %
+  ginv .choice:,
+  ginv .default:n = inverse,
+  ginv / prime .code = \renewcommand\@homework@ginv[1]{{##1}'},
+  ginv / inverse .code = \renewcommand\@homework@ginv[1]{{##1}^{-1}},
+  %
+  vec .choice:,
+  vec .default:n = arrow,
+  vec / bold .code = \renewcommand\@homework@vec{\symbf},
+  vec / underline .code = \renewcommand\@homework@vec{\underline},
+  vec / overline .code = \renewcommand\@homework@vec{\overline},
+  vec / arrow .code = \renewcommand\@homework@vec{\@homework@oldvec},
+  %
+  trans .choice:,
+  trans .default:n = intercal,
+  trans / lowercase .code = \renewcommand\@homework@trans[1]{{##1}^{\mathrm{t}}},
+  trans / intercal .code = \renewcommand\@homework@trans[1]{{##1}^{\intercal}},
+  %
+  limb .choice:,
+  limb .default:n = default,
+  limb / var .code = {
+    \renewcommand\@homework@limsup{\@homework@oldvarlimsup\limits}
+    \renewcommand\@homework@varlimsup{\@homework@oldlimsup\limits}
+    \renewcommand\@homework@liminf{\@homework@oldvarliminf\limits}
+    \renewcommand\@homework@varliminf{\@homework@oldliminf\limits}
+  },
+  limb / default .code = {
+    \renewcommand\@homework@limsup{\@homework@oldlimsup\limits}
+    \renewcommand\@homework@varlimsup{\@homework@oldvarlimsup\limits}
+    \renewcommand\@homework@liminf{\@homework@oldliminf\limits}
+    \renewcommand\@homework@varliminf{\@homework@oldvarliminf\limits}
+  },
+  %
+  lim .choice:,
+  lim .default:n = function,
+  lim / relation .code = {
+    \renewcommand\@homework@lim{\clim}
+    \renewcommand\@homework@nlim{\nclim}
+  },
+  lim / function .code = {
+    \RenewDocumentCommand\@homework@lim{e{^_} m m}{\lim\limits^{\IfValueT{##1}{##1}}_{\IfValueT{##2}{##2}} ##3 = ##4}
+    \RenewDocumentCommand\@homework@nlim{e{^_} m m}{\lim\limits^{\IfValueT{##1}{##1}}_{\IfValueT{##2}{##2}} ##3 {\neq} ##4}
+  },
+  %
+  magn .choice:,
+  magn .default:n = abs,
+  magn / norm .code = \renewcommand\@homework@magn{\norm},
+  magn / abs .code = \newcommand\@homework@magn{\abs},
+  %
+  det .choice:,
+  det / bar .code = {
+    \renewcommand\@homework@deter{\abs}
+    \RenewDocumentEnvironment{@homework@dmatrix}{O{c}}{\begin{vmatrix*}[##1]}{\end{vmatrix*}}
+  },
+  det / function .code = {
+    \renewcommand\@homework@deter{\@homework@pdeter}
+    \RenewDocumentEnvironment{@homework@dmatrix}{O{c}}{\@homework@olddet\begin{pmatrix*}[##1]}{\end{pmatrix*}}
+  },
+  %
+  usehalmos .if = @homework@usehalmos,
+  %
+  halmos .choice:,
+  halmos .default:n = default,
+  halmos / white .code = \renewcommand\@homework@qedsymbol{\square},
+  halmos / black .code = \renewcommand\@homework@qedsymbol{\blacksquare},
+  halmos / default .code = \renewcommand\@homework@qedsymbol{\@homework@oldqed},
+  %
+  int .choice:,
+  int .default:n = op,
+  int / sym .code = \renewcommand\@homework@int{\@homework@symint},
+  int / op .code = \renewcommand\@homework@int{\@homework@intop},
+  %
+  cl .choice:,
+  cl .default:n = op,
+  cl / sym .code = \renewcommand\@homework@cl{\@homework@symcl},
+  cl / op .code = \renewcommand\@homework@cl{\@homework@clop},
+  %
+  bd .choice:,
+  bd .default:n = op,
+  bd / sym .code = \renewcommand\@homework@bd{\@homework@symbd},
+  bd / op .code = \renewcommand\@homework@bd{\@homework@bdop},
+  bd / fr .code = \renewcommand\@homework@bd{\@homework@frbd},
+  %
+  id .choice:,
+  id .default:n = numeric,
+  id / numeric .code = {
+    \renewcommand\@homework@idm[1]{1_{##1}}
+    \renewcommand\@homework@idfr[1]{1_{##1}}
+    \renewcommand\@homework@idnat[1]{1_{##1}}
+  },
+  id / explicit .code = {
+    \renewcommand\@homework@idm[1]{\symnormal{id}_{##1}}
+    \renewcommand\@homework@idfr[1]{\symnormal{id}_{##1}}
+    \renewcommand\@homework@idnat[1]{\symnormal{id}_{##1}}
+  },
+  %
+  %% Presets
+  %
+  % Introduction to Mathematics
+  04101 .meta:n = {comp=super,tup=paren,ginv=prime,usehalmos=false},
+  % Discrete Math
+  20476 .meta:n = {comp=super,tup=angle,usehalmos=false,inlinerestr=false},
+  % Calculus I
+  20474 .meta:n = {diff=italic,tup=paren,ginv=inverse,lim=function,usehalmos,halmos=white,q3r},
+  % Algebra I
+  20109 .meta:n = {lowerhom=false,upperker,tup=angle,ginv=inverse,vec=bold,trans=lowercase,magn=norm,det=bar,usehalmos=false},
+  % Data Structures and Introduction to Algorithms
+  20407 .meta:n = {tup=angle,lim=function,usehalmos,halmos=black}
+}
+\DeclareUnknownKeyHandler{\PackageError{\@currname}{Unknown option `#1=#2`}}
+\ProcessKeyOptions%
+
+\newif\if@homework@titling
+
+\if@homework@minimal
+  \@homework@titlingfalse
+\else
+  \@homework@titlingtrue
+\fi
+
+\if@homework@explicit@titling
+  \@homework@titlingtrue
+  \if@homework@explicit@notitling
+    \PackageError{\@currname}{`titling` and `notitling` are mutually exclusive!}
+  \fi
+\fi
+
+\if@homework@explicit@notitling
+  \@homework@titlingfalse
+\fi
+
+%%%%%%
+
+\if@homework@inlinerestr
+  \renewcommand\@homework@restrict[2]{\ensuremath{{#1}\vert{#2}}}
+\fi
+\if@homework@usehalmos
+  \renewcommand\@homework@hqed{\@homework@qedsymbol}
+  \renewcommand\@homework@hqef{\@homework@qedsymbol}
+\fi
+
+\if@homework@minimal
+\else
+  \RequirePackage[hebrew, bidi=basic, layout=counters lists
+  footnotes captions extras sectioning.tabular,
+  provide={onchar=ids fonts, alph=letters.plain, Alph=letters}]{babel}
+  \babelprovide[onchar=fonts letters]{english}
+  \RequirePackage[indent]{parskip}
+\fi
+
+\RequirePackage{array}
+\RequirePackage[namelimits]{amsmath}
+\RequirePackage{amsthm, amssymb, amsfonts}
+\RequirePackage{cancel}
+\RequirePackage{witharrows}
+\RequirePackage{centernot}
+%% TODO: xfrac in math mode sometimes needs language switching
+\RequirePackage{xfrac}
+\RequirePackage[normalem]{ulem}
+\RequirePackage{mathtools}
+\RequirePackage{lualatex-math}
+\RequirePackage[math-style=ISO,bold-style=ISO,
+\IfBooleanTF{\@homework@italicdiff}{partial=italic}{partial=upright}]{unicode-math}
+\RequirePackage[\IfBooleanT{\@homework@italicdiff}{italicdiff,}arrowdel]{physics}
+\RequirePackage{systeme}
+\RequirePackage{algorithm, clrscode}
+\RequirePackage[inline]{enumitem}
+\RequirePackage{tikz, pgfplots}
+\RequirePackage{graphicx}
+\RequirePackage{caption}
+\if@homework@minimal
+  \RequirePackage{hyperref}
+\else
+  \RequirePackage[colorlinks]{hyperref}
+
+  \directlua{
+    local function font_found(name)
+      local ok, res = pcall(luaotfload.find, name)
+      return ok and res and true or false
+    end
+
+    local function make_fallback(names)
+      local result = {}
+      for _, name in ipairs(names) do
+        if font_found(name) then
+          table.insert(result, "name:" .. name .. ":mode=harf")
+        end
+      end
+      return result
+    end
+
+    luaotfload.add_fallback("hebrewrm", make_fallback({
+      "David CLM",
+      "Hadasim CLM",
+      "Liberation Serif",
+      "FreeSerif",
+    }))
+
+    luaotfload.add_fallback("hebrewsf", make_fallback({
+      "Nachlieli CLM",
+      "Liberation Sans",
+      "FreeMono",
+    }))
+
+    luaotfload.add_fallback("hebrewtt", make_fallback({
+      "Liberation Mono",
+      "FreeMono",
+    }))
+  }
+
+  \babelfont{rm}{TeX Gyre Pagella}
+  \babelfont{sf}{TeX Gyre Heros}
+  \babelfont{tt}{Noto Sans Mono}
+  \babelfont[hebrew, Ligatures=TeX]{rm}[RawFeature={fallback=hebrewrm}]{David CLM}
+  \babelfont[hebrew, Ligatures=TeX]{sf}[RawFeature={fallback=hebrewsf}]{Nachlieli CLM}
+  \babelfont[hebrew]{tt}[RawFeature={fallback=hebrewtt}]{Liberation Mono}
+
+  \setmathfont{Latin Modern Math}
+  \setmathfontface\mathrm{Latin Modern Math}
+  \setmathfont[range={bb}]{TeX Gyre Pagella Math}
+  \setmathfont[range={\varnothing}]{STIX Two Math}
+\fi
+
+\usetikzlibrary{calc, intersections, cd}
+\pgfplotsset{compat=1.18}
+
+\if@homework@minimal
+\else
+  \if@homework@preservetikz
+  \else
+    \NewEnvironmentCopy{@homework@oldtikzpicture}{tikzpicture}
+
+    %% Right-to-left text messes up node coordinates. Undoubtedly, this is
+    %% one of the weirdest issues I've encountered.
+    %% I can't use environment/tikzpicture/begin here because I want the
+    %% language change *after* the \tikzpicture call.
+    \AddToHook{cmd/tikzpicture/after}{\selectlanguage{english}}
+    %% This breaks witharrows
+  \fi
+\fi
+
+%% Fix codebox to store references to line numbers properly
+\renewcommand{\li}{\global\numberedlinetrue%
+\iffirstcodeline\global\firstcodelinefalse\else\\ \fi
+\refstepcounter{codelinenumber}%
+\liprint}
+
+\renewcommand{\lispace}[1]{\iffirstcodeline\global\firstcodelinefalse\else\\[#1] \fi
+\refstepcounter{codelinenumber}%
+\liprint}
+
+\if@homework@minimal
+\else
+  \NewEnvironmentCopy{@homework@oldcodebox}{codebox}
+  \RenewDocumentEnvironment{codebox}{}{\begin{otherlanguage}{english}\begin{@homework@oldcodebox}}{\end{@homework@oldcodebox}\end{otherlanguage}}
+\fi
+
+%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Configuration %%%%
+%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\@providecaption[2]{%
+  \expandafter\providecommand\csname #1name\endcsname{#2}%
+  \expandafter\providecommand\csname #1autorefname\endcsname{#2}%
+}
+
+\@providecaption{theorem}{Theorem}
+\@providecaption{corollary}{Corollary}
+\@providecaption{lemma}{Lemma}
+\@providecaption{definition}{Definition}
+\@providecaption{remark}{Remark}
+\@providecaption{question}{Question}
+\@providecaption{qsection}{Questions}
+\@providecaption{preface}{Preface}
+\@providecaption{qed}{\@homework@qedsymbol}
+\@providecaption{qef}{\@homework@qedsymbol} % Q.E.F: Quod erat faciendum
+\@providecaption{counterex}{Counterexample}
+\@providecaption{example}{Example}
+\@providecaption{induct}{By induction on}
+\@providecaption{basecase}{Base case}
+\@providecaption{indcase}{Inductive case}
+\@providecaption{ih}{the induction hypothesis}
+\@providecaption{solution}{Solution}
+\@providecaption{algorithm}{Algorithm}
+\@providecaption{codelinenumber}{Line}
+
+\renewcommand\ALG@name{\algorithmname}
+
+\NewCommandCopy\@homework@oldqed{\qedsymbol}
+\renewcommand\qedsymbol{\qedname}
+
+\if@homework@minimal
+\else
+  \newcommand\@localecaption[3]{%
+    \setlocalecaption{#1}{#2}{#3}%
+    \setlocalecaption{#1}{#2autoref}{#3}%
+  }
+
+  \@localecaption{hebrew}{theorem}{משפט}
+  \@localecaption{hebrew}{corollary}{מסקנה}
+  \@localecaption{hebrew}{lemma}{טענה}
+  \@localecaption{hebrew}{definition}{הגדרה}
+  \@localecaption{hebrew}{remark}{הערה}
+  \@localecaption{hebrew}{question}{שאלה}
+  \@localecaption{hebrew}{qsection}{שאלות}
+  \@localecaption{hebrew}{preface}{הקדמה}
+  \@localecaption{hebrew}{qed}{\@homework@hqed} % מה שהיה/צריך להוכיח
+  \@localecaption{hebrew}{qef}{\@homework@hqef} % מה שהיה/צריך לעשות
+  \@localecaption{hebrew}{counterex}{דוגמה נגדית}
+  \@localecaption{hebrew}{example}{דוגמה}
+  \@localecaption{hebrew}{induct}{באינדוקציה על}
+  \@localecaption{hebrew}{basecase}{צעד הבסיס}
+  \@localecaption{hebrew}{indcase}{צעד האינדוקציה}
+  \@localecaption{hebrew}{ih}{הנחת האינדוקציה}
+  \@localecaption{hebrew}{solution}{פתרון}
+  \@localecaption{hebrew}{algorithm}{אלגוריתם}
+  \@localecaption{hebrew}{codelinenumber}{שורה}
+
+  \@localecaption{english}{theorem}{Theorem}
+  \@localecaption{english}{corollary}{Corollary}
+  \@localecaption{english}{lemma}{Lemma}
+  \@localecaption{english}{definition}{Definition}
+  \@localecaption{english}{remark}{Remark}
+  \@localecaption{english}{question}{Question}
+  \@localecaption{english}{qsection}{Questions}
+  \@localecaption{english}{preface}{Preface}
+  \@localecaption{english}{qed}{\@homework@qedsymbol}
+  \@localecaption{english}{qef}{\@homework@qedsymbol}
+  \@localecaption{english}{counterex}{Counterexample}
+  \@localecaption{english}{example}{Example}
+  \@localecaption{english}{induct}{By induction over}
+  \@localecaption{english}{basecase}{Base case}
+  \@localecaption{english}{indcase}{Inductive case}
+  \@localecaption{english}{ih}{the induction hypothesis}
+  \@localecaption{english}{solution}{Solution}
+  \@localecaption{english}{algorithm}{Algorithm}
+  \@localecaption{english}{codelinenumber}{Line}
+\fi
+
+\if@homework@titling
+  %% Imitating the way LaTeX defines \title, \author, etc.
+  \def\@homework@mmnnum{11}
+  \def\@homework@course{שם הקורס}
+  \def\@homework@coursen{12345}
+  \def\@homework@semester{2024א}
+  \def\@homework@duedate{\localedate{2027}{9}{1}}
+  \AtBeginDocument{%
+    \title{מטלת מנחה (ממ״ן) {\@homework@mmnnum}\\%% Space before %
+      \Large {\@homework@course} ({\@homework@coursen}) %
+      --- {\@homework@semester}}%
+    \date{להגשה עד {\@homework@duedate}}%
+  }
+  \AddToHook{cmd/maketitle/after}{%
+    \global\let\@homework@mmnnum\relax
+    \global\let\@homework@course\relax
+    \global\let\@homework@coursen\relax
+    \global\let\@homework@semester\relax
+    \global\let\@homework@duedate\relax
+  }
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% User-Facing Section %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\if@homework@titling
+  %% Set the number, course, due date, etc.
+  %% Using \NewDocumentCommand to get optimized robust commands
+  \NewDocumentCommand\mmnnum{m}{\gdef\@homework@mmnnum{#1}}
+  \NewDocumentCommand\coursen{m}{\gdef\@homework@coursen{#1}}
+  \NewDocumentCommand\course{m}{\gdef\@homework@course{#1}}
+  \NewDocumentCommand\semester{m}{\gdef\@homework@semester{#1}}
+  \NewDocumentCommand\duedate{m m m}{\gdef\@homework@duedate%
+    {\localedate{#1}{#2}{#3}}}
+
+  %% Document Structure
+  \NewDocumentEnvironment{preface}{o}{%
+    \subsection*{{\protect\sffamily \IfNoValueTF{#1}{\prefacename}{#1}}}%
+    \sffamily%
+  }{}
+  \newcommand\mainsection{\section*{\protect\qsectionname}}
+\fi
+
+\if@homework@minimal
+\else
+  \NewDocumentCommand\emdash{}{\rule[0.5ex]{1em}{0.15ex}}
+  \NewDocumentCommand\endash{}{\rule[0.5ex]{0.5em}{0.15ex}}
+\fi
+
+%% Equation hyperreferences
+\newcommand\eqhref[1]{\hyperref[#1]{\eqref{#1}}}
+
+%% Theorem-Like Environments
+\newcommand\theoremandstar[2]{\newtheorem{#1}{#2}\newtheorem*{#1*}{#2}}
+\newcommand\theoremandstarparent[3]{\newtheorem{#1}{#2}[#3]\newtheorem*{#1*}{#2}}
+
+\theoremstyle{plain}
+\theoremandstar{theorem}{\theoremname}
+\theoremandstar{lemma}{\lemmaname}
+\theoremandstarparent{corollary}{\corollaryname}{theorem}
+
+\theoremstyle{definition}
+\theoremandstar{definition}{\definitionname}
+
+\theoremstyle{remark}
+\theoremandstar{remark}{\remarkname}
+
+%% List of Questions with sub-items
+\newlist{questions}{enumerate}{3}
+\newlist{questions*}{enumerate*}{3}
+
+\setlist[questions,questions*,1]{start=1,label={\bfseries \questionname\ \arabic*}:,ref=\arabic*,left=0pt}
+\setlist[questions,questions*,2]{start=1,label={\alph*}.,ref=\arabic{questionsi}.\alph*,left=0pt}
+\if@homework@qthreer
+  \setlist[questions,questions*,3]{start=1,label=({\roman*}),ref=\arabic{questionsi}.\alph{questionsii}.\roman*,left=0pt}
+\else
+  \setlist[questions,questions*,3]{start=1,label={\arabic*}.,ref=\arabic{questionsi}.\alph{questionsii}.\arabic*,left=0pt}
+\fi
+
+%%% Utility Document Commands %%%
+
+\NewDocumentCommand\qstyle{+m}{\textit{#1}}
+
+\NewDocumentCommand\withref{m m}{\hyperref[#1]{\begingroup\def\me{\ref*{#1}}#2\endgroup}}
+
+%% Equals sign with question mark. To be used in proofs when proving equality,
+%% to show two expressions becoming the same through (algebraic) manipulation.
+\newcommand\eqq{\ensuremath{\mathrel{\overset{?}{=}}}}
+
+%% Centred TikZ graphic (it doesn't work)
+\NewDocumentEnvironment{tikzcenter}{O{}}%
+{\centering\begin{tikzpicture}[#1]}%
+{\end{tikzpicture}}
+
+%%% Set Theory %%%
+
+%% Set Complement
+\NewDocumentCommand\setc{o m}{\ensuremath{\IfNoValueTF{#1}%
+    {\@homework@compsingle{#2}}%
+    {{#2}^\complement(#1)}}}
+
+%% Symmetric difference
+\newcommand\symdif{\triangle}
+
+%% Cartesian product
+\newcommand\cprod{\times}
+
+%% Powerset
+\NewDocumentCommand\powerset{m}{\ensuremath{\symcal{P}(#1)}}
+
+%% Set-builder notation
+\DeclarePairedDelimiter\set{\{}{\}}
+\DeclarePairedDelimiterX\setb[2]{\{}{\}}{%
+#1\,\delimsize\vert\,\mathopen{}#2%
+}
+
+%% Ordered Tuplets
+\DeclarePairedDelimiter\tuplet{\@homework@ltup}{\@homework@rtup}
+\DeclarePairedDelimiterX\pair[2]{\@homework@ltup}{\@homework@rtup}{#1,#2}
+\DeclarePairedDelimiterX\triplet[3]{\@homework@ltup}{\@homework@rtup}{#1,#2,#3}
+
+%% Function Declaration
+\NewDocumentCommand\ftyp{m O{#1}}{\ensuremath{{#1} \rightarrow {#2}}}
+\NewCommandCopy\restr{\@homework@restrict}
+
+%% Function Composition
+\newcommand\comp{\circ}
+
+%% Inverse Function
+\NewDocumentCommand\finv{m}{\ensuremath{{#1}^{-1}}}
+
+%% Cardinality
+\DeclarePairedDelimiter\car{\lvert}{\rvert}
+
+%% Relation font
+\NewDocumentCommand\rel{m}{\mathrel{#1}}
+
+%% Relation inverse
+\NewDocumentCommand\rinv{m}{\ensuremath{{#1}^{-1}}}
+
+%% Special sets
+\newcommand\naturals{\symbb{N}}
+\newcommand\integers{\symbb{Z}}
+\newcommand\zahlen{\integers}
+\newcommand\rationals{\symbb{Q}}
+\newcommand\reals{\symbb{R}}
+\newcommand\imaginaries{\symbb{I}}
+\newcommand\complex{\symbb{C}}
+
+%%% Combinatorics %%%
+\DeclareMathOperator{\@homework@comb}{C}
+\DeclareMathOperator{\@homework@perms}{P}
+\DeclareMathOperator{\@homework@rcomb}{D}
+
+\DeclarePairedDelimiterXPP{\comb}[2]{\@homework@comb}{(}{)}{}{{#1},{#2}}
+\DeclarePairedDelimiterXPP{\perms}[2]{\@homework@perms}{(}{)}{}{{#1},{#2}}
+\DeclarePairedDelimiterXPP{\rcomb}[2]{\@homework@rcomb}{(}{)}{}{{#1},{#2}}
+
+%%% Graph Theory %%%
+\DeclareMathOperator{\edges}{E}
+\DeclareMathOperator{\vertices}{V}
+\DeclareMathOperator{\faces}{F}
+\DeclareMathOperator{\gdeg}{deg}
+\DeclareMathOperator{\neighbours}{Γ}
+\DeclareMathOperator{\colouring}{χ}
+\newcommand\coloring{\colouring}
+\newcommand\neighbors{\neighbours}
+\NewCommandCopy\graphc{\@homework@graphc}
+
+%%% Group Theory %%%
+
+%% Element Inverse
+\NewDocumentCommand\ginv{m}{\ensuremath{\@homework@ginv{#1}}}
+
+%%% Numbers %%%
+%% We like to be semantic
+\newcommand\divs{\mid}
+\newcommand\ndivs{\nmid}
+\NewDocumentCommand\slfrac{m m}{{#1}/{#2}}
+
+%% Complex Conjugate
+\newcommand\conj{\overline}
+\DeclareMathOperator{\cis}{cis}
+\DeclareMathOperator{\@homework@Re}{Re}
+\DeclareMathOperator{\@homework@Im}{Im}
+
+\RenewCommandCopy\real{\@homework@Re}
+\NewCommandCopy\imag{\@homework@Im}
+
+%%% Algebra %%%
+%% multiplicative inverse
+\NewDocumentCommand\fminv{m}{\ensuremath{{#1}^{-1}}}
+%% additive inverse
+\NewDocumentCommand\fainv{m}{\ensuremath{\left(-{#1}\right)}}
+
+%% Polynomials over a field
+\NewDocumentCommand\polys{m O{x}}{\ensuremath{{#1}\left[{#2}\right]}}
+\NewDocumentCommand\polyf{m m O{x}}{\ensuremath{{#1}_{#2}\left[{#3}\right]}}
+
+%%% Linear Algebra %%%
+\NewCommandCopy\@homework@oldvec{\vec}
+\NewCommandCopy\@homework@olddet{\det}
+\NewDocumentCommand\@homework@pdeter{m}{\ensuremath{\@homework@olddet\left(#1\right)}}
+\RenewCommandCopy\vec{\@homework@vec}
+\newcommand\basis{\vu*} % For i and j, requires \imath and \jmath
+\NewCommandCopy\magn{\@homework@magn}
+\RenewCommandCopy\det{\@homework@deter}
+\NewEnvironmentCopy{dmatrix}{@homework@dmatrix}
+
+%% Row operations
+\newcommand\swap{\leftrightarrow}
+\NewDocumentCommand\mapsby{e{^_}}{\xrightarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}
+
+%% Vectors
+\NewEnvironmentCopy{bvector}{bmatrix}
+\NewEnvironmentCopy{pvector}{pmatrix}
+
+%% Coordinate vectors
+\DeclarePairedDelimiterXPP{\coords}[2]{}{[}{]}{_{#2}}{#1}
+
+%% Matrix representing a transformation
+\DeclarePairedDelimiterXPP{\tmat}[3]{}{[}{]}{^{#2}_{#3}}{#1}
+
+%% Span
+\DeclareMathOperator{\lspan}{Sp}
+
+%% Direct sum of vector spaces
+\newcommand\dsum{\oplus}
+
+%% Inner product & orthogonality
+\NewCommandCopy\scprod{\vdot} % For "scalar product"
+\DeclarePairedDelimiterX\innerp[2]{\langle}{\rangle}{#1,#2}
+% \DeclarePairedDelimiter\bra{\langle}{\rvert}
+% \DeclarePairedDelimiter\ket{\lvert}{\rangle}
+% \DeclarePairedDelimiterX\braket[3]{\langle}{\rangle}{%
+  % #1\,\delimsize\vert\,\mathopen{}#2\,\delimsize\vert\,\mathopen{}#3%
+  % }
+\newcommand\orth{\perp}
+\NewDocumentCommand\oc{m}{{#1}^{\perp}}
+
+%% Image and Kernel
+\DeclareMathOperator{\img}{Im}
+\if@homework@upperker
+  \DeclareMathOperator{\@homework@ker}{Ker}
+  \RenewCommandCopy\ker{\@homework@ker}
+\fi
+
+%% Transpose
+\NewCommandCopy\trans{\@homework@trans}
+
+%% Inverse matrix
+\NewDocumentCommand\matinv{m}{{#1}^{-1}}
+
+%% Augmented matrices
+\NewDocumentEnvironment{amatrix}{O{c} m O{1}}{%
+   \begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{%
+  \end{array}
+}
+
+\NewDocumentEnvironment{pamatrix}{O{c} m O{1}}{%
+  \left(\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{%
+  \end{array}\right)
+}
+
+\NewDocumentEnvironment{bamatrix}{O{c} m O{1}}{%
+  \left[\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{%
+  \end{array}\right]
+}
+
+\NewDocumentEnvironment{Bamatrix}{O{c} m O{1}}{%
+  \left\{\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{%
+  \end{array}\right\}
+}
+
+\NewDocumentEnvironment{vamatrix}{O{c} m O{1}}{%
+  \left\lvert\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{%
+  \end{array}\right\rvert
+}
+
+\NewDocumentEnvironment{Vamatrix}{O{c} m O{1}}{%
+  \left\lVert\begin{array}{@{}*{#2}{#1}|*{#3}{#1}@{}}
+}{%
+  \end{array}\right\rVert
+}
+
+%% Arbitrary field
+\newcommand\field{\symbb{F}}
+
+%%% Category Theory %%%
+\DeclareMathOperator{\ob}{ob}
+\DeclareMathOperator{\mor}{mor}
+
+%% Category font
+\newcommand\cat{\symbf}
+
+\NewCommandCopy\@homework@oldhom{\hom}
+\let\hom\relax%
+\if@homework@lowerhom
+  \NewCommandCopy\hom{\@homework@oldhom}
+\else
+  \DeclareMathOperator\hom{Hom}
+\fi
+
+%% Opposite category
+\NewDocumentCommand\cop{m}{\ensuremath{{#1}^{\mathrm op}}}
+
+%% Morphism type
+\newcommand\mtyp{\ftyp}
+
+%% Identity morphism
+\NewDocumentCommand\idm{m}{\ensuremath{\@homework@idm{#1}}}
+
+%% Inverse morphism
+\NewDocumentCommand\minv{m}{\ensuremath{{#1}^{-1}}}
+
+%% Isomorphic objects
+\newcommand\iso{\cong}
+
+%% Functor type
+\newcommand\frtyp{\mtyp}
+
+%% Identity Functor
+\NewDocumentCommand\idfr{m}{\ensuremath{\@homework@idfr{#1}}}
+
+%% Natural transformation type
+\NewDocumentCommand\nattyp{m O{#1}}{\ensuremath{{#1} \Rightarrow {#2}}}
+
+%% Identity natural transformation
+\NewDocumentCommand\idnat{m}{\ensuremath{\@homework@idnat{#1}}}
+
+%% Horizontal composition
+\newcommand\hcomp{*}
+
+%% Hom-set / Hom-class
+\NewDocumentCommand\homset{o m m}{\ensuremath{\IfNoValueTF{#1}{\hom}{\hom_{#1}}(#2, #3)}}
+
+%%% Geometry %%%
+%% Line Segment
+\newcommand\seg{\overline}
+
+%% See <https://tex.stackexchange.com/a/284787>
+\DeclareFontFamily{U}{tipa}{}
+\DeclareFontShape{U}{tipa}{m}{n}{<->tipa10}{}
+\newcommand{\arc@char}{{\usefont{U}{tipa}{m}{n}\symbol{62}}}
+\if@homework@minimal
+  \newcommand{\arc@arc}[2]{%
+    \sbox0{$\m@th#1#2$}%
+    \vbox{
+      \hbox{\resizebox{\wd0}{\height}{\arc@char}}
+      \nointerlineskip
+      \box0
+    }%
+  }
+\else
+  \newcommand{\arc@arc}[2]{%
+    \sbox0{$\m@th#1#2$}%
+    \vbox{
+      \hbox{\resizebox{\wd0}{\height}{\foreignlanguage{english}{\arc@char}}}
+      \nointerlineskip
+      \box0
+    }%
+  }
+\fi
+
+\NewDocumentCommand\arc{m}{\mathpalette\arc@arc{#1}}
+
+\NewDocumentCommand\tri{m}{\ensuremath{{\triangle {\mathrm {#1}}}}}
+\NewDocumentCommand\quadri{m}{\ensuremath{{\square {\mathrm {#1}}}}}
+
+%%% Calculus & Analysis %%%
+\NewDocumentCommand\aprch{e{^_}}{\xrightarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}
+%% It's janky
+\NewDocumentCommand\naprch{e{^_}}{\centernot{\xrightarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}}
+\NewDocumentCommand\hcrpa{e{^_}}{\xleftarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}
+\NewDocumentCommand\nhcrpa{e{^_}}{\centernot{\xleftarrow[\IfValueT{#2}{#2}]{\IfValueT{#1}{#1}}}}
+\NewDocumentCommand\clim{e{^_} m m}{\ensuremath{#3 \aprch^{#1}_{#2} {#4}}}
+\NewDocumentCommand\nclim{e{^_} m m}{\ensuremath{#3 \naprch^{#1}_{#2} {#4}}}
+\NewCommandCopy\limes{\@homework@lim}
+\NewCommandCopy\nlim{\@homework@nlim}
+\newcommand\at{\eval}
+
+
+\DeclarePairedDelimiterXPP\@homework@orderl[3]{\operatorname{\symnormal{o}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP\@homework@ordergeq[3]{\operatorname{\symnormal{\Omega}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP\@homework@orderleq[3]{\operatorname{\symcal{O}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP\@homework@orderg[3]{\operatorname{\symnormal{\omega}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+\DeclarePairedDelimiterXPP\@homework@ordereq[3]{\operatorname{\symnormal{\Theta}}\displaylimits_{#2}^{#3}}{(}{)}{}{#1}
+
+\newcommand\@@homework@definealias[2]{\NewDocumentCommand#1{s e{_^} m}{\IfBooleanTF{##1}{#2*}{#2}{##4}{\IfValueT{##2}{##2}}{\IfValueT{##3}{##3}}}}
+\@@homework@definealias\orderl\@homework@orderl
+\@@homework@definealias\ordergeq\@homework@ordergeq
+\@@homework@definealias\orderleq\@homework@orderleq
+\@@homework@definealias\orderg\@homework@orderg
+\@@homework@definealias\ordereq\@homework@ordereq
+
+\newcommand\orderge{\ordergeq}
+\newcommand\orderle{\orderleq}
+
+%% Opposite of \to
+\newcommand\from{\leftarrow}
+
+\NewCommandCopy\@homework@oldlimsup{\limsup}
+\NewCommandCopy\@homework@oldvarlimsup{\varlimsup}
+\NewCommandCopy\@homework@oldliminf{\liminf}
+\NewCommandCopy\@homework@oldvarliminf{\varliminf}
+\RenewCommandCopy\limsup{\@homework@limsup}
+\RenewCommandCopy\varlimsup{\@homework@varlimsup}
+\RenewCommandCopy\liminf{\@homework@liminf}
+\RenewCommandCopy\varliminf{\@homework@varliminf}
+
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\fracp{\langle}{\rangle}
+
+%%% Topology %%%
+\DeclareMathOperator\@homework@intop{int}
+\DeclareMathOperator\@homework@clop{cl}
+\DeclareMathOperator\@homework@bdop{bd}
+\DeclareMathOperator\@homework@frbd{fr}
+\NewDocumentCommand\@homework@symint{m}{{#1}^{\circ}}
+\newcommand\@homework@symcl{\overline}
+\NewDocumentCommand\@homework@symbd{m}{\partial{#1}}
+
+\NewDocumentCommand\derived{m}{{#1}'}
+\newcommand\limitp{\derived}
+\NewCommandCopy\interior{\@homework@int}
+\NewCommandCopy\cl{\@homework@cl}
+\NewCommandCopy\bd{\@homework@bd}
+\NewCommandCopy\fr{\@homework@bd}
+
+%%% Proofs %%%
+
+%% counterexample --- a clone of the `proof' environment, using its
+%% own \counterexname and \qefname.
+%% Used to disprove "for all" propositions.
+\NewDocumentEnvironment{counterexample}{+o}{%
+  \NewCommandCopy\@oldqedname{\qedname}%
+  \renewcommand\qedname{\qefname}%
+  \begin{proof}[\counterexname]%
+  \IfValueT{#1}{#1.\par}%
+}{%
+  \end{proof}%
+  \RenewCommandCopy\qedname{\@oldqedname}%
+}
+
+%% example --- a clone of the `proof' environment, using its
+%% own \examplename.
+%% Used to prove "there exists" propositions.
+\NewDocumentEnvironment{example}{+o}{%
+  \begin{proof}[\examplename]%
+  \IfValueT{#1}{#1.\par}%
+}{\end{proof}}
+
+\NewDocumentEnvironment{solution}{+o}{%
+  \par\emph{\solutionname.}%
+  \IfValueT{#1}{ #1.\par}%
+}{}
+
+%% induct --- a clone of the `proof' environment, inserting
+%% \inductname and defining \bc (base case) and \ind (inductive
+%% case).
+\NewDocumentEnvironment{induct}{+o m}{%
+  \providecommand\bc{}%
+  \providecommand\ind{}%
+  \providecommand\ih{}%
+  \providecommand\pih{}%
+  \NewCommandCopy\@oldbc{\bc}%
+  \NewCommandCopy\@oldind{\ind}%
+  \NewCommandCopy\@oldih{\ih}%
+  \NewCommandCopy\@oldpih{\pih}%
+  \renewcommand\bc{\emph{\basecasename}.}%
+  \renewcommand\ind{\emph{\indcasename}.}%
+  \renewcommand\ih{\ihname}%
+  \renewcommand\pih{\emph{\ihname}.}%
+  \IfNoValueTF{#1}{\begin{proof}}{\begin{proof}[#1]}%
+  \inductname{} {#2}:\par%
+}{%
+  \end{proof}%
+  \RenewCommandCopy\bc{\@oldbc}%
+  \RenewCommandCopy\ind{\@oldind}%
+  \RenewCommandCopy\ih{\@oldih}%
+  \RenewCommandCopy\pih{\@oldpih}%
+}
+
+%% induct* --- like `induct', but doesn't insert \inductname.
+\NewDocumentEnvironment{induct*}{+o}{%
+  \IfNoValueTF{#1}{\begin{proof}}{\begin{proof}[#1]}%
+  \NewCommandCopy\@oldbc{\bc}%
+  \NewCommandCopy\@oldind{\ind}%
+  \NewCommandCopy\@oldih{\ih}%
+  \newcommand\bc{\emph{\basecasename}.}%
+  \newcommand\ind{\emph{\indcasename}.}%
+  \newcommand\ih{\ihname}%
+}{%
+  \end{proof}%
+  \RenewCommandCopy\bc{\@oldbc}%
+  \RenewCommandCopy\ind{\@oldind}%
+  \RenewCommandCopy\ih{\@oldih}%
+}
+
+%%% Algorithm Utilities %%%
+%% End a comment
+\newcommand\CmtEnd{$\lhd$}
+%% Continue a comment
+\newcommand\CmtCnt{\hphantom{\Comment}}
+
+\endinput
