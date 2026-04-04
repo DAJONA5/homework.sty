@@ -413,6 +413,10 @@
 
 \ProcessKeyOptions[homework]
 
+\DeclareDocumentCommand \HomeworkSetup {m} {
+  \keys_set:nn {homework} {#1}
+}
+
 %%% Dependencies
 
 \bool_if:NT \l__homework_babel_bool {
