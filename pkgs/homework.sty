@@ -16,7 +16,7 @@
 
 \cs_new:Npn \__homework_title: {
   מטלת~ מנחה~ (ממ״ן) \nobreakspace \int_use:N \g__homework_mmnnum_int\\
-  \Large \g__homework_course_tl~ (\int_use:N \g__homework_course_int)~
+  \Large \g__homework_course_tl \nobreakspace (\int_use:N \g__homework_course_int)~
   ---~ \g__homework_semester_tl
 }
 
@@ -72,7 +72,7 @@
   babel/hebrewsf .initial:n = {
     Nachlieli~CLM,
     Liberation~Sans,
-    FreeMono
+    FreeSans
   },
 
   babel/hebrewtt .usage:n = load,
@@ -105,8 +105,8 @@
   titling .usage:n = preamble,
   titling .choice:,
   titling / true .code:n = \cs_gset:Nn \__homework_titling: {
-    \exp_args:Ne \title {\__homework_title:}
-    \exp_args:Ne \date {\__homework_date:}
+    \title {\__homework_title:}
+    \date {\__homework_date:}
   },
   titling / false .code:n = \cs_gset:Nn \__homework_titling: {},
   titling .default:n = true,
@@ -256,7 +256,7 @@
   alg / magn / abs .code:n = \DeclareDocumentCommand \magn {} {\abs},
   alg / magn .initial:n = norm,
   alg / magn .default:n = norm,
-  ays / magn .meta:n = { alg / magn = #1 },
+  ays / magn .inherit:n = alg / magn,
 
   alg / upperker .usage:n = load,
   alg / upperker .bool_set:N = \l__homework_upperker_bool,
@@ -283,26 +283,26 @@
   cat / lowerhom .bool_set:N = \l__homework_lowerhom_bool,
   cat / lowerhom .initial:n = false,
 
+  alg / lowerhom .inherit:n = cat / lowerhom,
+
   cat / idof / mor .usage:n = general,
   cat / idof / mor .choices:nn = { numeric, explicit } {
-    \cs_set_eq:Nc \__homework_idm:n {__homework_id_ \l_keys_choice_str :n}
+    \cs_set_eq:Nc \__homework_idm:n {__homework_id_ \l_keys_choice_tl :n}
   },
 
   cat / idof / func .usage:n = general,
   cat / idof / func .choices:nn = { numeric, explicit } {
-    \cs_set_eq:Nc \__homework_idfr:n {__homework_id_ \l_keys_choice_str :n}
+    \cs_set_eq:Nc \__homework_idfr:n {__homework_id_ \l_keys_choice_tl :n}
   },
 
   cat / idof / nat .usage:n = general,
   cat / idof / nat .choices:nn = { numeric, explicit } {
-    \cs_set_eq:Nc \__homework_idnat:n {__homework_id_ \l_keys_choice_str :n}
+    \cs_set_eq:Nc \__homework_idnat:n {__homework_id_ \l_keys_choice_tl :n}
   },
 
   cat / id .usage:n = general,
-  cat / id .meta:n = {
-    idof / mor = #1,
-    idof / func = #1,
-    idof / nat = #1
+  cat / id .inherit:n = {
+    cat / idof / mor, cat / idof / func, cat / idof / nat
   },
   cat / id .initial:n = numeric,
   cat / id .default:n = numeric,
@@ -360,50 +360,50 @@
 
   % Introduction to Mathematics
   04101 .meta:n = {
-    comp = super,
-    tup = paren,
-    ginv = prime,
-    usehalmos = false
+    set / comp = super,
+    set / tup = paren,
+    grp / inv = prime,
+    gen / usehalmos = false
   },
 
   % Discrete Math
   20476 .meta:n = {
-    comp = super,
-    tup = angle,
-    usehalmos = false,
-    inlinerestr = false
+    set / comp = super,
+    set / tup = angle,
+    gen / usehalmos = false,
+    set / inlinerestr = false
   },
 
   % Calculus I
   20474 .meta:n = {
-    diff = italic,
-    tup = paren,
-    ginv = inverse,
-    lim = function,
-    usehalmos,
-    halmos = white,
-    q3r
+    ays / diff = italic,
+    set / tup = paren,
+    grp / inv = inverse,
+    ays / lim = function,
+    gen / usehalmos,
+    gen / halmos = white,
+    gen / q3r
   },
 
   % Algebra I
   20109 .meta:n = {
-    lowerhom = false,
-    upperker,
-    tup = angle,
-    ginv = inverse,
-    vec = bold,
-    trans = lowercase,
-    magn = norm,
-    det = bar,
-    usehalmos = false
+    alg / lowerhom = false,
+    alg / upperker,
+    set / tup = angle,
+    grp / inv = inverse,
+    alg / vec = bold,
+    alg / trans = lowercase,
+    alg / magn = norm,
+    alg / det = bar,
+    gen / usehalmos = false
   },
 
   % Data Structures and Introduction to Algorithms
   20407 .meta:n = {
-    tup = angle,
-    lim = function,
-    usehalmos,
-    halmos = black
+    set / tup = angle,
+    ays / lim = function,
+    gen / usehalmos,
+    gen / halmos = black
   }
 }
 
@@ -458,6 +458,10 @@
 
 %% Languages & Fonts
 \bool_if:NT \l__homework_babel_bool {
+  \babelfont{rm}{TeX~Gyre~Pagella}
+  \babelfont{sf}{TeX~Gyre~Heros}
+  \babelfont{tt}{Noto~Sans~Mono}
+
   \seq_new:N \l__homework_tmphebrewrm_seq
   \seq_new:N \l__homework_tmphebrewsf_seq
   \seq_new:N \l__homework_tmphebrewtt_seq
@@ -485,37 +489,37 @@
     { \seq_if_empty_p:N \l__homework_tmphebrewsf_seq }
     { \seq_if_empty_p:N \l__homework_tmphebrewtt_seq }
   } {
-    \babelfont[hebrew, Ligatures=TeX]{rm}{David CLM}
-    \babelfont[hebrew, Ligatures=TeX]{sf}{Nachlieli CLM}
-    \babelfont[hebrew]{tt}{Liberation Mono}
+    \babelfont[hebrew, Ligatures=TeX]{rm}{David~CLM}
+    \babelfont[hebrew, Ligatures=TeX]{sf}{Nachlieli~CLM}
+    \babelfont[hebrew]{tt}{Liberation~Mono}
   } {
     \lua_now:e{
-      local function font_found(name)
-        local ok, res = pcall(luaotfload.find, name)
-        return ok and res and true or false
-      end
+      local~ function~ font_found(name)~
+        local~ foundname, subfont = luaotfload.aux.resolve_fontname(name)~
+        return~ (foundname~ and~ true)~ or~ false~
+      end~
 
-      local function make_fallback(names)
-        local result = {}
-        for _, name in ipairs(names) do
-          if font_found(name) then
-            table.insert(result, "name:" .. name .. ":mode=harf")
-          end
-        end
-        return result
-      end
+      local~ function~ make_fallback(names)~
+        local~ result = {}~
+        for~ _, name~ in~ ipairs(names)~ do~
+          if~ font_found(name)~ then~
+            table.insert(result, "name:" .. name .. ":mode=harf")~
+          end~
+        end~
+        return~ result~
+      end~
 
       luaotfload.add_fallback("hebrewrm", make_fallback({
         \seq_use:Nn \l__homework_tmphebrewrm_seq {,}
-      }))
-      
+      }))~
+
       luaotfload.add_fallback("hebrewsf", make_fallback({
         \seq_use:Nn \l__homework_tmphebrewsf_seq {,}
-      }))
-      
+      }))~
+
       luaotfload.add_fallback("hebrewtt", make_fallback({
         \seq_use:Nn \l__homework_tmphebrewtt_seq {,}
-      }))
+      }))~
     }
 
     \babelfont
@@ -526,20 +530,16 @@
 
     \babelfont
       [hebrew, Ligatures=TeX]
-      {rm}
+      {sf}
       [RawFeature={fallback=hebrewsf}]
       { \clist_item:Nn \l__homework_babel_hebrewsf_clist {1} }
 
     \babelfont
       [hebrew]
-      {rm}
+      {tt}
       [RawFeature={fallback=hebrewtt}]
       { \clist_item:Nn \l__homework_babel_hebrewtt_clist {1} }
   }
-
-  \babelfont{rm}{TeX Gyre Pagella}
-  \babelfont{sf}{TeX Gyre Heros}
-  \babelfont{tt}{Noto Sans Mono}
 }
 
 \setmathfont{Latin Modern Math}
@@ -548,7 +548,10 @@
 \setmathfont[range={\varnothing}]{STIX Two Math}
 
 %% TikZ
+\ExplSyntaxOff%
+% Some packages still need to work on their expl3 compat...
 \usetikzlibrary{calc, intersections, cd}
+\ExplSyntaxOn
 \pgfplotsset{compat=1.18}
 
 \NewEnvironmentCopy{@homework@oldtikzpicture}{tikzpicture}
@@ -703,11 +706,11 @@
 
 %%% Titling
 
-\NewDocumentCommand\mmnnum{m}{\int_gset:Nn \g__homework_mmnnum_int #1}
-\NewDocumentCommand\coursen{m}{\int_gset:Nn \g__homework_course_int #1}
-\NewDocumentCommand\course{m}{\tl_gset:Nn \g__homework_course_tl #1}
-\NewDocumentCommand\semester{m}{\tl_gset:Nn \g__homework_semester_tl #1}
-\NewDocumentCommand\duedate{m m m}{
+\cs_set:Npn \mmnnum #1 {\int_gset:Nn \g__homework_mmnnum_int {#1}}
+\cs_set:Npn \coursen #1 {\int_gset:Nn \g__homework_course_int {#1}}
+\cs_set:Npn \course #1 {\tl_gset:Nn \g__homework_course_tl {#1}}
+\cs_set:Npn \semester #1 {\tl_gset:Nn \g__homework_semester_tl {#1}}
+\cs_set:Npn \duedate #1#2#3 {
   \tl_gset:Nn \g__homework_duedate_tl {\localedate{#1}{#2}{#3}}
 }
 
@@ -854,12 +857,12 @@
 \NewDocumentCommand\rinv{m}{\ensuremath{{#1} \sp {-1}}}
 
 %% Special sets
-\tl_new:Nn \c__homework_naturals_tl { \symbb{N} }
-\tl_new:Nn \c__homework_integers_tl { \symbb{Z} }
-\tl_new:Nn \c__homework_rationals_tl { \symbb{Q} }
-\tl_new:Nn \c__homework_reals_tl { \symbb{R} }
-\tl_new:Nn \c__homework_imaginaries_tl { \symbb{I} }
-\tl_new:Nn \c__homework_complex_tl { \symbb{C} }
+\tl_const:Nn \c__homework_naturals_tl { \symbb{N} }
+\tl_const:Nn \c__homework_integers_tl { \symbb{Z} }
+\tl_const:Nn \c__homework_rationals_tl { \symbb{Q} }
+\tl_const:Nn \c__homework_reals_tl { \symbb{R} }
+\tl_const:Nn \c__homework_imaginaries_tl { \symbb{I} }
+\tl_const:Nn \c__homework_complex_tl { \symbb{C} }
 
 \cs_set_eq:NN \naturals \c__homework_naturals_tl
 \cs_set_eq:NN \integers \c__homework_integers_tl
@@ -894,6 +897,7 @@
 %% Complex Conjugate
 \NewDocumentCommand\conj{}{\overline}
 \DeclareMathOperator{\cis}{cis}
+\cs_undefine:N \real
 \DeclareMathOperator{\real}{Re}
 \DeclareMathOperator{\imag}{Im}
 
@@ -914,7 +918,7 @@
 
 %%% Linear Algebra %%%
 \cs_set_eq:NN \__homework_oldvec:n \vec
-\NewCommandCopy \vec \__homework_vec:n
+\RenewCommandCopy \vec \__homework_vec:n
 \NewDocumentCommand \basis {} {\vu*}
 
 \cs_set_eq:NN \__homework_olddet: \det
