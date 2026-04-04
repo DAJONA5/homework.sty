@@ -256,7 +256,8 @@
   alg / magn / abs .code:n = \DeclareDocumentCommand \magn {} {\abs},
   alg / magn .initial:n = norm,
   alg / magn .default:n = norm,
-  ays / magn .inherit:n = alg / magn,
+  ays / magn .meta:n = { alg / magn = #1 },
+  ays / magn .default:n = norm,
 
   alg / upperker .usage:n = load,
   alg / upperker .bool_set:N = \l__homework_upperker_bool,
@@ -283,29 +284,32 @@
   cat / lowerhom .bool_set:N = \l__homework_lowerhom_bool,
   cat / lowerhom .initial:n = false,
 
-  alg / lowerhom .inherit:n = cat / lowerhom,
+  alg / lowerhom .meta:n = { cat / lowerhom = #1 },
+  alg / lowerhom .default:n = true,
 
-  cat / idof / mor .usage:n = general,
-  cat / idof / mor .choices:nn = { numeric, explicit } {
+  cat / id / mor .usage:n = general,
+  cat / id / mor .choices:nn = { numeric, explicit } {
     \cs_set_eq:Nc \__homework_idm:n {__homework_id_ \l_keys_choice_tl :n}
   },
 
-  cat / idof / func .usage:n = general,
-  cat / idof / func .choices:nn = { numeric, explicit } {
+  cat / id / func .usage:n = general,
+  cat / id / func .choices:nn = { numeric, explicit } {
     \cs_set_eq:Nc \__homework_idfr:n {__homework_id_ \l_keys_choice_tl :n}
   },
 
-  cat / idof / nat .usage:n = general,
-  cat / idof / nat .choices:nn = { numeric, explicit } {
+  cat / id / nat .usage:n = general,
+  cat / id / nat .choices:nn = { numeric, explicit } {
     \cs_set_eq:Nc \__homework_idnat:n {__homework_id_ \l_keys_choice_tl :n}
   },
 
   cat / id .usage:n = general,
-  cat / id .inherit:n = {
-    cat / idof / mor, cat / idof / func, cat / idof / nat
+  cat / id .meta:n = {
+    cat / id / mor = #1,
+    cat / id / func = #1,
+    cat / id / nat = #1
   },
-  cat / id .initial:n = numeric,
   cat / id .default:n = numeric,
+  cat / id .initial:n = numeric,
 
   % Calculus/Analysis
 
