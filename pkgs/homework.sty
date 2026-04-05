@@ -619,30 +619,36 @@
   \cs_if_free:cT {#1 name} {
     \exp_args:Nc \NewDocumentCommand {#1 name} {} {#2}
   }
+}
+
+\cs_new:Npn \homework_providr_caption:nn #1 #2 {
+  \homework_provide_caption:nn {#1} {#2}
   \cs_if_free:cT {#1 autorefname} {
     \exp_args:Ncc \NewCommandCopy {#1 autorefname} {#1 name}
   }
 }
 
-\homework_provide_caption:nn {theorem} {Theorem}
-\homework_provide_caption:nn {corollary} {Corollary}
-\homework_provide_caption:nn {lemma} {Lemma}
-\homework_provide_caption:nn {definition} {Definition}
-\homework_provide_caption:nn {remark} {Remark}
-\homework_provide_caption:nn {question} {Question}
+\homework_providr_caption:nn {theorem} {Theorem}
+\homework_providr_caption:nn {corollary} {Corollary}
+\homework_providr_caption:nn {lemma} {Lemma}
+\homework_providr_caption:nn {definition} {Definition}
+\homework_providr_caption:nn {remark} {Remark}
+\homework_providr_caption:nn {question} {Question}
 \homework_provide_caption:nn {qsection} {Questions}
 \homework_provide_caption:nn {preface} {Preface}
 \homework_provide_caption:nn {qed} {\l__homework_qedsymbol_tl}
 \homework_provide_caption:nn {qef} {\l__homework_qedsymbol_tl} % Q.E.F: Quod erat faciendum
 \homework_provide_caption:nn {counterex} {Counterexample}
-\homework_provide_caption:nn {example} {Example}
-\homework_provide_caption:nn {induct} {By induction on}
-\homework_provide_caption:nn {basecase} {Base case}
-\homework_provide_caption:nn {indcase} {Inductive case}
-\homework_provide_caption:nn {ih} {the induction hypothesis}
+\homework_providr_caption:nn {example} {Example}
+\homework_provide_caption:nn {induct} {By~ induction~ on \nobreakspace}
+\homework_provide_caption:nn {basecase} {Base~ case}
+\homework_provide_caption:nn {indcase} {Inductive~ case}
+\homework_provide_caption:nn {ih} {the~ induction~ hypothesis}
+\homework_provide_caption:nn {pih} {Induction~ hypothesis}
+\homework_provide_caption:nn {ih} {the~ induction~ hypothesis}
 \homework_provide_caption:nn {solution} {Solution}
-\homework_provide_caption:nn {algorithm} {Algorithm}
-\homework_provide_caption:nn {codelinenumber} {Line}
+\homework_providr_caption:nn {algorithm} {Algorithm}
+\homework_providr_caption:nn {codelinenumber} {Line}
 
 \cs_set_eq:NN \ALG@name \algorithmname
 
@@ -652,6 +658,10 @@
 \bool_if:NT \l__homework_babel_bool {
   \cs_new:Npn \homework_locale_caption:nnn #1 #2 #3 {
     \setlocalecaption {#1} {#2} {#3}
+  }
+
+  \cs_new:Npn \homework_localr_caption:nnn #1 #2 #3 {
+    \homework_locale_caption:nnn {#1} {#2} {#3}
     \setlocalecaption {#1} {#2 autoref} {#3}
   }
 
@@ -667,45 +677,47 @@
   }
   \tl_set_eq:NN \l__homework_hqef_tl \l__homework_hqed_tl
 
-  \homework_locale_caption:nnn{hebrew}{theorem}{משפט}
-  \homework_locale_caption:nnn{hebrew}{corollary}{מסקנה}
-  \homework_locale_caption:nnn{hebrew}{lemma}{טענה}
-  \homework_locale_caption:nnn{hebrew}{definition}{הגדרה}
-  \homework_locale_caption:nnn{hebrew}{remark}{הערה}
-  \homework_locale_caption:nnn{hebrew}{question}{שאלה}
+  \homework_localr_caption:nnn{hebrew}{theorem}{משפט}
+  \homework_localr_caption:nnn{hebrew}{corollary}{מסקנה}
+  \homework_localr_caption:nnn{hebrew}{lemma}{טענה}
+  \homework_localr_caption:nnn{hebrew}{definition}{הגדרה}
+  \homework_localr_caption:nnn{hebrew}{remark}{הערה}
+  \homework_localr_caption:nnn{hebrew}{question}{שאלה}
   \homework_locale_caption:nnn{hebrew}{qsection}{שאלות}
   \homework_locale_caption:nnn{hebrew}{preface}{הקדמה}
   \homework_locale_caption:nnn{hebrew}{qed}{\l__homework_hqed_tl}
   \homework_locale_caption:nnn{hebrew}{qef}{\l__homework_hqef_tl}
-  \homework_locale_caption:nnn{hebrew}{counterex}{דוגמה נגדית}
-  \homework_locale_caption:nnn{hebrew}{example}{דוגמה}
-  \homework_locale_caption:nnn{hebrew}{induct}{באינדוקציה על}
-  \homework_locale_caption:nnn{hebrew}{basecase}{צעד הבסיס}
-  \homework_locale_caption:nnn{hebrew}{indcase}{צעד האינדוקציה}
-  \homework_locale_caption:nnn{hebrew}{ih}{הנחת האינדוקציה}
+  \homework_locale_caption:nnn{hebrew}{counterex}{דוגמה~נגדית}
+  \homework_localr_caption:nnn{hebrew}{example}{דוגמה}
+  \homework_locale_caption:nnn{hebrew}{induct}{באינדוקציה~ על \nobreakspace}
+  \homework_locale_caption:nnn{hebrew}{basecase}{צעד \nobreakspace הבסיס}
+  \homework_locale_caption:nnn{hebrew}{indcase}{צעד \nobreakspace האינדוקציה}
+  \homework_locale_caption:nnn{hebrew}{ih}{הנחת~ האינדוקציה}
+  \homework_locale_caption:nnn{hebrew}{pih}{הנחת~ האינדוקציה}
   \homework_locale_caption:nnn{hebrew}{solution}{פתרון}
-  \homework_locale_caption:nnn{hebrew}{algorithm}{אלגוריתם}
-  \homework_locale_caption:nnn{hebrew}{codelinenumber}{שורה}
+  \homework_localr_caption:nnn{hebrew}{algorithm}{אלגוריתם}
+  \homework_localr_caption:nnn{hebrew}{codelinenumber}{שורה}
 
-  \homework_locale_caption:nnn{english}{theorem}{Theorem}
-  \homework_locale_caption:nnn{english}{corollary}{Corollary}
-  \homework_locale_caption:nnn{english}{lemma}{Lemma}
-  \homework_locale_caption:nnn{english}{definition}{Definition}
-  \homework_locale_caption:nnn{english}{remark}{Remark}
-  \homework_locale_caption:nnn{english}{question}{Question}
+  \homework_localr_caption:nnn{english}{theorem}{Theorem}
+  \homework_localr_caption:nnn{english}{corollary}{Corollary}
+  \homework_localr_caption:nnn{english}{lemma}{Lemma}
+  \homework_localr_caption:nnn{english}{definition}{Definition}
+  \homework_localr_caption:nnn{english}{remark}{Remark}
+  \homework_localr_caption:nnn{english}{question}{Question}
   \homework_locale_caption:nnn{english}{qsection}{Questions}
   \homework_locale_caption:nnn{english}{preface}{Preface}
   \homework_locale_caption:nnn{english}{qed}{\l__homework_qedsymbol_tl}
   \homework_locale_caption:nnn{english}{qef}{\l__homework_qedsymbol_tl}
   \homework_locale_caption:nnn{english}{counterex}{Counterexample}
-  \homework_locale_caption:nnn{english}{example}{Example}
-  \homework_locale_caption:nnn{english}{induct}{By induction over}
-  \homework_locale_caption:nnn{english}{basecase}{Base case}
-  \homework_locale_caption:nnn{english}{indcase}{Inductive case}
-  \homework_locale_caption:nnn{english}{ih}{the induction hypothesis}
+  \homework_localr_caption:nnn{english}{example}{Example}
+  \homework_locale_caption:nnn{english}{induct}{By \nobreakspace induction~ over \nobreakspace}
+  \homework_locale_caption:nnn{english}{basecase}{Base~ case}
+  \homework_locale_caption:nnn{english}{indcase}{Inductive~ case}
+  \homework_locale_caption:nnn{english}{ih}{the~ induction~ hypothesis}
+  \homework_locale_caption:nnn{english}{pih}{Induction~ hypothesis}
   \homework_locale_caption:nnn{english}{solution}{Solution}
-  \homework_locale_caption:nnn{english}{algorithm}{Algorithm}
-  \homework_locale_caption:nnn{english}{codelinenumber}{Line}
+  \homework_localr_caption:nnn{english}{algorithm}{Algorithm}
+  \homework_localr_caption:nnn{english}{codelinenumber}{Line}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
