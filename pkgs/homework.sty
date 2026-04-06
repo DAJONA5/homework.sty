@@ -420,10 +420,10 @@
 %%% Dependencies
 
 \bool_if:NT \l__homework_babel_bool {
-  \RequirePackage[hebrew, bidi=basic, layout=counters lists
-  footnotes captions extras sectioning.tabular,
-  provide={onchar=ids fonts, alph=letters.plain, Alph=letters}]{babel}
-  \babelprovide[onchar=fonts letters]{english}
+  \RequirePackage[hebrew,~ bidi=basic,~ layout=counters~ lists
+  footnotes~ captions~ extras~ sectioning.tabular,~
+  provide={onchar=ids~ fonts,~ alph=letters.plain,~ Alph=letters}]{babel}
+  \babelprovide[onchar=fonts~ letters]{english}
 }
 
 \str_if_eq:nnF \l__homework_parskipoptions_tl { false } {
