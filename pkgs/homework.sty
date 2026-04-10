@@ -466,8 +466,8 @@
 
 %% Languages & Fonts
 \bool_if:NT \l__homework_babel_bool {
-  \babelfont{rm}{TeX~Gyre~Pagella}
-  \babelfont{sf}{TeX~Gyre~Heros}
+  \babelfont{rm}[Ligatures=TeX]{TeX~Gyre~Pagella}
+  \babelfont{sf}[Ligatures=TeX]{TeX~Gyre~Heros}
   \babelfont{tt}{Noto~Sans~Mono}
 
   \seq_new:N \l__homework_tmphebrewrm_seq
@@ -497,8 +497,8 @@
     { \seq_if_empty_p:N \l__homework_tmphebrewsf_seq }
     { \seq_if_empty_p:N \l__homework_tmphebrewtt_seq }
   } {
-    \babelfont[hebrew, Ligatures=TeX]{rm}{David~CLM}
-    \babelfont[hebrew, Ligatures=TeX]{sf}{Nachlieli~CLM}
+    \babelfont[hebrew]{rm}{David~CLM}
+    \babelfont[hebrew]{sf}{Nachlieli~CLM}
     \babelfont[hebrew]{tt}{Liberation~Mono}
   } {
     \lua_now:e{
@@ -531,13 +531,13 @@
     }
 
     \babelfont
-      [hebrew, Ligatures=TeX]
+      [hebrew]
       {rm}
       [RawFeature={fallback=hebrewrm}]
       { \clist_item:Nn \l__homework_babel_hebrewrm_clist {1} }
 
     \babelfont
-      [hebrew, Ligatures=TeX]
+      [hebrew]
       {sf}
       [RawFeature={fallback=hebrewsf}]
       { \clist_item:Nn \l__homework_babel_hebrewsf_clist {1} }
@@ -740,6 +740,15 @@
 }{}
 
 \NewDocumentCommand\mainsection{}{\section*{\protect\qsectionname}}
+
+%%% Multilingual utilities
+
+\bool_if:NT \l__homework_babel_bool {
+  \babeltags {
+    eng = english,
+    heb = hebrew
+  }
+}
 
 %%% Equation hyperreferences
 \NewDocumentCommand\eqhref{m}{\hyperref[#1]{\eqref{#1}}}
