@@ -664,6 +664,10 @@
     \setlocalecaption {#1} {#2 autoref} {#3}
   }
 
+  \cs_new:Npn \homework_locale_autoref:nn #1 #2 {
+    \setlocalecaption {#1} {#2 autoref} {\use:c { #2 name }}
+  }
+
   \tl_new:N \l__homework_hqed_tl
   \tl_new:N \l__homework_hqef_tl
 
@@ -675,6 +679,8 @@
     }
   }
   \tl_set_eq:NN \l__homework_hqef_tl \l__homework_hqed_tl
+
+  \homework_locale_autoref:nn {hebrew}{figure}
 
   \homework_localr_caption:nnn{hebrew}{theorem}{משפט}
   \homework_localr_caption:nnn{hebrew}{corollary}{מסקנה}
