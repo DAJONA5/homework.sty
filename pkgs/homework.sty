@@ -1169,36 +1169,36 @@
 \DeclareMathOperator* \__homework_orderg: {\symnormal{\omega}}
 \DeclareMathOperator* \__homework_ordereq: {\symnormal{\Theta}}
 
-\DeclarePairedDelimiterXPP \__homework_orderl:nnn [3] {
+\DeclarePairedDelimiterXPP \__homework_orderl:w [3] {
   \__homework_orderl: \sb {#2} \sp {#3}
 }{(}{)}{}{#1}
-\DeclarePairedDelimiterXPP \__homework_ordergeq:nnn [3] {
+\DeclarePairedDelimiterXPP \__homework_ordergeq:w [3] {
   \__homework_ordergeq: \sb {#2} \sp {#3}
 }{(}{)}{}{#1}
-\DeclarePairedDelimiterXPP \__homework_orderleq:nnn [3] {
+\DeclarePairedDelimiterXPP \__homework_orderleq:w [3] {
   \__homework_orderleq: \sb {#2} \sp {#3}
 }{(}{)}{}{#1}
-\DeclarePairedDelimiterXPP \__homework_orderg:nnn [3] {
+\DeclarePairedDelimiterXPP \__homework_orderg:w [3] {
   \__homework_orderg: \sb {#2} \sp {#3}
 }{(}{)}{}{#1}
-\DeclarePairedDelimiterXPP \__homework_ordereq:nnn [3] {
+\DeclarePairedDelimiterXPP \__homework_ordereq:w [3] {
   \__homework_ordereq: \sb {#2} \sp {#3}
 }{(}{)}{}{#1}
 
 \ExplSyntaxOff% For the superscript/subscript characters
-\newcommand\@@homework@definealias[2]{\NewDocumentCommand#1{s e{_^} m}{%
-    \IfBooleanTF{##1}{#2*}{#2}{##4}%
-    {\IfValueT{##2}{##2}}{\IfValueT{##3}{##3}}%
+\newcommand\@@homework@definealias[2]{\NewDocumentCommand#1{s o e{_^} m}{%
+    \IfValueTF{##2}{#2[##2]}{\IfBooleanTF{##1}{#2*}{#2}}{##5}%
+    {\IfValueT{##3}{##3}}{\IfValueT{##4}{##4}}%
   }%
 }
 \ExplSyntaxOn
 
 \cs_set_eq:Nc \__homework_definealias:NN {@@homework@definealias}
-\__homework_definealias:NN \orderl \__homework_orderl:nnn
-\__homework_definealias:NN \ordergeq \__homework_ordergeq:nnn
-\__homework_definealias:NN \orderleq \__homework_orderleq:nnn
-\__homework_definealias:NN \orderg \__homework_orderg:nnn
-\__homework_definealias:NN \ordereq \__homework_ordereq:nnn
+\__homework_definealias:NN \orderl \__homework_orderl:w
+\__homework_definealias:NN \ordergeq \__homework_ordergeq:w
+\__homework_definealias:NN \orderleq \__homework_orderleq:w
+\__homework_definealias:NN \orderg \__homework_orderg:w
+\__homework_definealias:NN \ordereq \__homework_ordereq:w
 
 \cs_set_eq:NN \orderge \ordergeq
 \cs_set_eq:NN \orderle \orderleq
