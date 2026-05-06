@@ -1306,10 +1306,10 @@
 %% \inductname and defining \bc (base case) and \ind (inductive
 %% case).
 \NewDocumentEnvironment{induct}{+o m}{%
-  \cs_set:Npn \bc {\emph{\basecasename}.}
-  \cs_set:Npn \ind {\emph{\indcasename}.}
+  \cs_set:Npn \bc {\emph{\basecasename}.~}
+  \cs_set:Npn \ind {\emph{\indcasename}.~}
   \cs_set:Npn \ih {\ihname}
-  \cs_set:Npn \pih {\emph{\pihname}.}
+  \cs_set:Npn \pih {\emph{\pihname}.~}
   \IfNoValueTF{#1}{\begin{proof}}{\begin{proof}[#1]}
   \inductname {#2}:\par
 }{
@@ -1318,10 +1318,10 @@
 
 %% induct* --- like `induct', but doesn't insert \inductname.
 \NewDocumentEnvironment{induct*}{+o}{%
-  \cs_set:Npn \bc {\emph{\basecasename}.}
-  \cs_set:Npn \ind {\emph{\indcasename}.}
+  \cs_set:Npn \bc {\emph{\basecasename}.~}
+  \cs_set:Npn \ind {\emph{\indcasename}.~}
   \cs_set:Npn \ih {\ihname}
-  \cs_set:Npn \pih {\emph{\pihname}.}
+  \cs_set:Npn \pih {\emph{\pihname}.~}
   \IfNoValueTF{#1}{\begin{proof}}{\begin{proof}[#1]}
 }{
   \end{proof}
