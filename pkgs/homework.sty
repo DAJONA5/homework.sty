@@ -5,23 +5,25 @@
 \RequirePackage{iftex}
 \RequireLuaTeX
 
+%%% Messages
+\msg_new:nnn {homework} {depr} {Command~ `#1'~ is~ deprecated,~ use~ `#2'~ instead.}
+
 %%%%%%%%%% Variables necessary to declare before options
 
 %% Titling
-\int_new:N \g__homework_mmnnum_int
+\int_new:N \g__homework_assnum_int
 \tl_new:N \g__homework_course_tl
 \int_new:N \g__homework_course_int
 \tl_new:N \g__homework_semester_tl
 \tl_new:N \g__homework_duedate_tl
 
-\cs_new:Npn \__homework_title: {
-  מטלת~ מנחה~ (ממ״ן) \nobreakspace \int_use:N \g__homework_mmnnum_int\\
-  \Large \g__homework_course_tl \nobreakspace (\int_use:N \g__homework_course_int)~
-  ---~ \g__homework_semester_tl
-}
-
 \cs_new:Npn \__homework_date: {
   להגשה~ עד \nobreakspace \g__homework_duedate_tl
+}
+
+\cs_new:Npn \__homework_do_titling: {
+  \title {\__homework_title:}
+  \date {\__homework_date:}
 }
 
 \hook_gput_code:nnn {begindocument} {./titling} {
@@ -104,13 +106,25 @@
 
   titling .usage:n = preamble,
   titling .choice:,
-  titling / true .code:n = \cs_gset:Nn \__homework_titling: {
-    \title {\__homework_title:}
-    \date {\__homework_date:}
+  titling / mmn .code:n = {
+    \cs_gset_eq:NN \__homework_titling: \__homework_do_titling:
+    \cs_gset:Nn \__homework_title: {
+      מטלת~ מנחה~ (ממ״ן) \nobreakspace \int_use:N \g__homework_assnum_int\\
+      \Large \g__homework_course_tl \nobreakspace (\int_use:N \g__homework_course_int)~
+      ---~ \g__homework_semester_tl
+    }
+  },
+  titling / opal .code:n = {
+    \cs_gset_eq:NN \__homework_titling: \__homework_do_titling:
+    \cs_gset:Nn \__homework_title: {
+      מטלה~ מס׳ \nobreakspace \int_use:N \g__homework_assnum_int\\
+      \Large \g__homework_course_tl \nobreakspace (\int_use:N \g__homework_course_int)~
+      ---~ \g__homework_semester_tl
+    }
   },
   titling / false .code:n = \cs_gset:Nn \__homework_titling: {},
-  titling .default:n = true,
-  titling .initial:n = true,
+  titling .default:n = opal,
+  titling .initial:n = opal,
 
   ays / diff .usage:n = load,
   ays / diff .choice:,
@@ -364,6 +378,7 @@
 
   % Introduction to Mathematics
   04101 .meta:n = {
+    titling = opal,
     set / comp = super,
     set / tup = paren,
     grp / inv = prime,
@@ -372,6 +387,7 @@
 
   % Discrete Math
   20476 .meta:n = {
+    titling = opal,
     set / comp = super,
     set / tup = angle,
     gen / usehalmos = false,
@@ -380,6 +396,7 @@
 
   % Calculus I
   20474 .meta:n = {
+    titling = opal,
     ays / diff = italic,
     set / tup = paren,
     grp / inv = inverse,
@@ -391,6 +408,7 @@
 
   % Algebra I
   20109 .meta:n = {
+    titling = opal,
     alg / lowerhom = false,
     alg / upperker,
     set / tup = angle,
@@ -404,6 +422,7 @@
 
   % Data Structures and Introduction to Algorithms
   20407 .meta:n = {
+    titling = mmn,
     set / tup = angle,
     ays / lim = function,
     gen / usehalmos,
@@ -731,7 +750,11 @@
 
 %%% Titling
 
-\cs_set:Npn \mmnnum #1 {\int_gset:Nn \g__homework_mmnnum_int {#1}}
+\cs_set:Npn \assnum #1 {\int_gset:Nn \g__homework_assnum_int {#1}}
+\cs_set:Npn \mmnnum #1 {
+  \msg_warning:nnnn {homework} {depr} {mmnnum} {assnum}
+  \assnum {#1}
+}
 \cs_set:Npn \coursen #1 {\int_gset:Nn \g__homework_course_int {#1}}
 \cs_set:Npn \course #1 {\tl_gset:Nn \g__homework_course_tl {#1}}
 \cs_set:Npn \semester #1 {\tl_gset:Nn \g__homework_semester_tl {#1}}
