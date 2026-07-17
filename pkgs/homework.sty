@@ -374,6 +374,17 @@
   top / bd .initial:n = op,
   top / bd .default:n = op,
 
+  % Graph Theory
+  gph / deg .usage:n = general,
+  gph / deg .tl_set:N = \l__homework_gph_deg_tl,
+  gph / deg .initial:n = deg,
+  gph / deg .default:n = deg,
+
+  gph / nb .usage:n = general,
+  gph / nb .tl_set:N = \l__homework_gph_nb_tl,
+  gph / nb .initial:n = Γ,
+  gph / nb .default:n = Γ,
+
   %% Course Presets
 
   % Introduction to Mathematics
@@ -391,7 +402,9 @@
     set / comp = super,
     set / tup = angle,
     gen / usehalmos = false,
-    set / inlinerestr = false
+    set / inlinerestr = false,
+    gph / deg = deg,
+    gph / nb = Γ
   },
 
   % Calculus I
@@ -434,7 +447,9 @@
     titling = opal,
     gen / usehalmos,
     gen / halmos = black,
-    set / tup = paren
+    set / tup = paren,
+    gph / deg = d,
+    gph / nb = N
   }
 }
 
@@ -946,9 +961,13 @@
 \DeclareMathOperator{\edges}{E}
 \DeclareMathOperator{\vertices}{V}
 \DeclareMathOperator{\faces}{F}
-\DeclareMathOperator{\gdeg}{deg}
-\DeclareMathOperator{\neighbours}{Γ}
+\NewDocumentCommand \gsize {} {\ensuremath{e}}
+\NewDocumentCommand \gorder {} {\ensuremath{n}}
+\NewDocumentCommand {\gdeg} {} {\ensuremath{\l__homework_gph_deg_tl}}
+\DeclareMathOperator{\neighbours}{\l__homework_dph_nb_tl}
 \DeclareMathOperator{\colouring}{χ}
+\DeclareMathOperator{\mdeg}{δ} % minimum degree
+\DeclareMathOperator{\Mdeg}{Δ} % maximum degree
 \cs_set:Npn \coloring {\colouring}
 \cs_set:Npn \neighbors {\neighbours}
 \NewCommandCopy \graphc {\overline}
