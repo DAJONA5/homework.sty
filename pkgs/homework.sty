@@ -377,8 +377,8 @@
   % Graph Theory
   gph / deg .usage:n = general,
   gph / deg .tl_set:N = \l__homework_gph_deg_tl,
-  gph / deg .initial:n = deg,
-  gph / deg .default:n = deg,
+  gph / deg .initial:n = \operatorname{deg},
+  gph / deg .default:n = \operatorname{deg},
 
   gph / nb .usage:n = general,
   gph / nb .tl_set:N = \l__homework_gph_nb_tl,
@@ -403,7 +403,7 @@
     set / tup = angle,
     gen / usehalmos = false,
     set / inlinerestr = false,
-    gph / deg = deg,
+    gph / deg = \operatorname{deg},
     gph / nb = Γ
   },
 
@@ -961,16 +961,33 @@
 \DeclareMathOperator{\edges}{E}
 \DeclareMathOperator{\vertices}{V}
 \DeclareMathOperator{\faces}{F}
+\DeclareMathOperator{\gdiam}{diam}
+\DeclareMathOperator{\gradius}{rad}
 \NewDocumentCommand \gsize {} {\ensuremath{e}}
 \NewDocumentCommand \gorder {} {\ensuremath{n}}
-\NewDocumentCommand {\gdeg} {} {\ensuremath{\l__homework_gph_deg_tl}}
-\DeclareMathOperator{\neighbours}{\l__homework_dph_nb_tl}
-\DeclareMathOperator{\colouring}{χ}
-\DeclareMathOperator{\mdeg}{δ} % minimum degree
-\DeclareMathOperator{\Mdeg}{Δ} % maximum degree
+\NewDocumentCommand \gdist {} {\ensuremath{d}}
+\NewDocumentCommand \odeg {} {\ensuremath{\l__homework_gph_deg_tl \sp +}}
+\NewDocumentCommand \ideg {} {\ensuremath{\l__homework_gph_deg_tl \sp -}}
+\NewDocumentCommand \gdeg {} {\ensuremath{\l__homework_gph_deg_tl}}
+\NewDocumentCommand \ecc {} {\ensuremath{\epsilon}}
+\NewDocumentCommand \neighbours {} {\l__homework_gph_nb_tl}
+\cs_set:Npn \colouring {\ensuremath{χ}}
+\NewDocumentCommand \mdeg {} {\ensuremath{δ}} % minimum degree
+\NewDocumentCommand \Mdeg {} {\ensuremath{Δ}} % maximum degree
 \cs_set:Npn \coloring {\colouring}
 \cs_set:Npn \neighbors {\neighbours}
 \NewCommandCopy \graphc {\overline}
+
+%% Miscellaneous graph parameters
+\NewDocumentCommand \Mgind {} {\ensuremath{α}} % maximum independent set
+\NewDocumentCommand \Mgmat {} {\ensuremath{α'}} % maximum match
+\NewDocumentCommand \mgvc {}  {\ensuremath{β}} % minimum vertex cover
+\NewDocumentCommand \mgec {}  {\ensuremath{β'}} % minimum edge cover
+\NewDocumentCommand \mgdom {} {\ensuremath{γ}} % minimum dominating set
+\NewDocumentCommand \gcon {} {\ensuremath{κ}} % connectivity
+\NewDocumentCommand \gecon {} {\ensuremath{κ'}} % edge-connectivity
+
+\NewDocumentCommand \goddc {} {\ensuremath{o}} % number of odd components
 
 %%% Numbers %%%
 %% We like to be semantic
