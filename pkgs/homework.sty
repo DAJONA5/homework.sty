@@ -211,6 +211,11 @@
   set / inlinerestr .initial:n = false,
   set / inlinerestr .default:n = true,
 
+  set / given .usage:n = general,
+  set / given .tl_set:N = \l__homework_set_given_tl,
+  set / given .default:n = \delimsize\vert,
+  set / given .initial:n = \delimsize\vert,
+
   % Group theory
 
   grp / inv .usage:n = general,
@@ -417,6 +422,12 @@
     gen / usehalmos,
     gen / halmos = white,
     gen / q3r
+  },
+
+  % Calculus II
+  20475 .meta:n = {
+    20474,
+    set / given = :
   },
 
   % Algebra I
@@ -903,7 +914,7 @@
 %% Set-builder notation
 \DeclarePairedDelimiter \set {\{} {\}}
 \DeclarePairedDelimiterX \setb [2] {\{} {\}} {
-  #1 \, \delimsize\vert \, \mathopen{} #2
+  #1 \, \l__homework_set_given_tl \, \mathopen{} #2
 }
 
 %% Ordered Tuplets
