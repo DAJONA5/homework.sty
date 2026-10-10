@@ -963,6 +963,7 @@
 \DeclareMathOperator{\faces}{F}
 \DeclareMathOperator{\gdiam}{diam}
 \DeclareMathOperator{\gradius}{rad}
+\DeclareMathOperator{\lineg}{L}
 \NewDocumentCommand \gsize {} {\ensuremath{e}}
 \NewDocumentCommand \gorder {} {\ensuremath{n}}
 \NewDocumentCommand \gdist {} {\ensuremath{d}}
@@ -971,12 +972,18 @@
 \NewDocumentCommand \gdeg {} {\ensuremath{\l__homework_gph_deg_tl}}
 \NewDocumentCommand \ecc {} {\ensuremath{\epsilon}}
 \NewDocumentCommand \neighbours {} {\l__homework_gph_nb_tl}
-\cs_set:Npn \colouring {\ensuremath{χ}}
+\NewDocumentCommand \colouring {} {\ensuremath{χ}}
+\NewDocumentCommand \ecolouring {} {\ensuremath{χ'}}
 \NewDocumentCommand \mdeg {} {\ensuremath{δ}} % minimum degree
 \NewDocumentCommand \Mdeg {} {\ensuremath{Δ}} % maximum degree
 \cs_set:Npn \coloring {\colouring}
+\cs_set:Npn \ecoloring {\ecolouring}
 \cs_set:Npn \neighbors {\neighbours}
+\NewDocumentCommand \gdual {m} {\ensuremath{#1^*}}
 \NewCommandCopy \graphc {\overline}
+\NewCommandCopy \gjoin \lor
+\NewDocumentCommand \gadj {} {\leftrightarrow}
+\NewDocumentCommand \gcp {} {\mathbin{\square}} % Graph cartesian product (not the categorical product)
 
 %% Miscellaneous graph parameters
 \NewDocumentCommand \Mgind {} {\ensuremath{α}} % maximum independent set
@@ -986,6 +993,8 @@
 \NewDocumentCommand \mgdom {} {\ensuremath{γ}} % minimum dominating set
 \NewDocumentCommand \gcon {} {\ensuremath{κ}} % connectivity
 \NewDocumentCommand \gecon {} {\ensuremath{κ'}} % edge-connectivity
+\NewDocumentCommand \gcliq {} {\ensuremath{ω}} % maximum clique
+\NewDocumentCommand \gcrs {} {\ensuremath{ν}} % minimum crossings
 
 \NewDocumentCommand \goddc {} {\ensuremath{o}} % number of odd components
 
