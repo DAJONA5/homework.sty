@@ -1307,6 +1307,12 @@
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\fracp{\langle}{\rangle}
 
+%% Upper and Lower integral
+\ExplSyntaxOff
+\NewDocumentCommand\uint{e{_^}}{\overline{\int_{#1}^{#2}}}
+\NewDocumentCommand\lint{e{_^}}{\underline{\int_{#1}^{#2}}}
+\ExplSyntaxOn
+
 %%% Topology %%%
 \keys_define:nn {homework / top} {
   int .usage:n = general,
