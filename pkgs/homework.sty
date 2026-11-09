@@ -49,6 +49,10 @@
 
 \bool_new:N \l__homework_italicdiff_bool
 
+%% User-customizable captions
+
+\tl_new:N \l__homework_captions_tl
+
 %%%%%%
 
 %%% Package Options
@@ -390,6 +394,16 @@
   gph / nb .initial:n = Γ,
   gph / nb .default:n = Γ,
 
+  %% Captions
+  captions / heb .usage:n = general,
+  captions / heb .code:n = {
+    \tl_put_right:Nn \l__homework_captions_tl { \HomeworkCaptions { hebrew } { #1 } }
+  },
+  captions / eng .usage:n = general,
+  captions / eng .code:n = {
+    \tl_put_right:Nn \l__homework_captions_tl { \HomeworkCaptions { english } { #1 } }
+  },
+
   %% Course Presets
 
   % Introduction to Mathematics
@@ -427,7 +441,10 @@
   % Calculus II
   20475 .meta:n = {
     20474,
-    set / given = :
+    set / given = :,
+    captions / heb = {
+      lemma = למה
+    }
   },
 
   % Algebra I
@@ -466,7 +483,7 @@
 
 \ProcessKeyOptions[homework]
 
-\DeclareDocumentCommand \HomeworkSetup {m} {
+\NewDocumentCommand \HomeworkSetup {m} {
   \keys_set:nn {homework} {#1}
 }
 
@@ -776,6 +793,13 @@
   \homework_locale_caption:nnn{english}{solution}{Solution}
   \homework_localr_caption:nnn{english}{algorithm}{Algorithm}
   \homework_localr_caption:nnn{english}{codelinenumber}{Line}
+
+  %% #1 language, #2 captions
+  \NewDocumentCommand \HomeworkCaptions {m +m} {
+    \keyval_parse:nnn { \use_none:n } { \homework_localr_caption:nnn { #1 } } { #2 }
+  }
+  \l__homework_captions_tl
+  \tl_clear:N \l__homework_captions_tl
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
