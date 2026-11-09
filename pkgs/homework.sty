@@ -1337,6 +1337,9 @@
 \NewDocumentCommand\lint{e{_^}}{\underline{\int_{#1}^{#2}}}
 \ExplSyntaxOn
 
+%% Mesh of a partition
+\NewDocumentCommand\mesh{}{\lambda}
+
 %%% Topology %%%
 \keys_define:nn {homework / top} {
   int .usage:n = general,
